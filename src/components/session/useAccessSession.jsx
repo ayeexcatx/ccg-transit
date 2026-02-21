@@ -12,10 +12,14 @@ export function useAccessSession() {
         setLoading(false);
         return;
       }
-      const codes = await base44.entities.AccessCode.filter({ id: storedId });
-      if (codes.length > 0 && codes[0].active_flag !== false) {
-        setSession(codes[0]);
-      } else {
+      try {
+        const codes = await base44.entities.AccessCode.filter({ id: storedId });
+        if (codes.length > 0 && codes[0].active_flag !== false) {
+          setSession(codes[0]);
+        } else {
+          localStorage.removeItem('access_code_id');
+        }
+      } catch (error) {
         localStorage.removeItem('access_code_id');
       }
       setLoading(false);
