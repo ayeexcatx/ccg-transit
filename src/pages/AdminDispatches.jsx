@@ -378,7 +378,7 @@ export default function AdminDispatches() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
             </div>
           ))}
         </div>
