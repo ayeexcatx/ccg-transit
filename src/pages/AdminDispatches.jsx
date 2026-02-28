@@ -137,7 +137,6 @@ export default function AdminDispatches() {
   const dispatchRefs = useRef({});
   const didAutoScroll = useRef(false);
 
-  // Read ?dispatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
   const targetDispatchId = urlParams.get('dispatchId');
 
@@ -240,6 +239,28 @@ export default function AdminDispatches() {
     setDeleteError('');
   };
 
+  // Auto-open preview for target dispatch from notification
+  useEffect(() => {
+    if (!targetDispatchId || didAutoScroll.current || dispatches.length === 0) return;
+    const target = dispatches.find(d => d.id === targetDispatchId);
+    if (!target) return;
+
+    // Clear status filter if it would hide the dispatch
+    if (filters.status !== 'all' && filters.status !== target.status) {
+      setFilters(f => ({ ...f, status: 'all' }));
+    }
+
+    didAutoScroll.current = true;
+    setTimeout(() => {
+      const el = dispatchRefs.current[targetDispatchId];
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-blue-400', 'ring-offset-1');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-1'), 3000);
+      }
+    }, 200);
+  }, [targetDispatchId, dispatches]);
+
   const handleSave = (formData) => {
     if (editing && !editing._isCopy) {
       saveMutation.mutate(formData);
@@ -249,16 +270,6 @@ export default function AdminDispatches() {
       saveMutation.mutate(formData);
     }
   };
-
-  // Auto-open preview for dispatch from notification link
-  useEffect(() => {
-    if (!targetDispatchId || didAutoScroll.current || dispatches.length === 0) return;
-    const found = dispatches.find(d => d.id === targetDispatchId);
-    if (found) {
-      setPreviewDispatch(found);
-    }
-    didAutoScroll.current = true;
-  }, [targetDispatchId, dispatches]);
 
   return (
     <div className="space-y-6">
@@ -307,12 +318,6 @@ export default function AdminDispatches() {
         </Card>
       )}
 
-      {targetDispatchId && !dispatches.find(d => d.id === targetDispatchId) && dispatches.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Dispatch no longer available.
-        </div>
-      )}
-
       {isLoading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin h-6 w-6 border-2 border-slate-300 border-t-slate-700 rounded-full" />
@@ -322,7 +327,8 @@ export default function AdminDispatches() {
       ) : (
         <div className="grid gap-3">
           {filtered.map(d => (
-            <Card key={d.id} className="hover:shadow-sm transition-shadow">
+            <div key={d.id} ref={el => dispatchRefs.current[d.id] = el} className="rounded-lg transition-all duration-500">
+              <Card className="hover:shadow-sm transition-shadow">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -373,6 +379,7 @@ export default function AdminDispatches() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           ))}
         </div>
       )}
