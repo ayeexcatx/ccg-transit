@@ -23,11 +23,11 @@ const tollColors = {
   'Included in Rate': 'bg-purple-50 text-purple-700',
 };
 
-export default function DispatchCard({
+const DispatchCard = React.forwardRef(function DispatchCard({
   dispatch, session, confirmations, timeEntries, templateNotes,
-  onConfirm, onTimeEntry, companyName
-}) {
-  const [expanded, setExpanded] = useState(false);
+  onConfirm, onTimeEntry, companyName, defaultExpanded = false
+}, ref) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
 
