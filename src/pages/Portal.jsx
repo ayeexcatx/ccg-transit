@@ -126,6 +126,10 @@ export default function Portal() {
   const currentList = tab === 'active' ? activeDispatches : historyDispatches;
   const sortedNotes = [...templateNotes].sort((a, b) => (a.priority || 0) - (b.priority || 0));
 
+  // Detect if targeted dispatch is not found/visible
+  const dispatchNotFound = targetDispatchId && dispatches.length > 0 &&
+    !dispatches.find(d => d.id === targetDispatchId);
+
   // Auto-navigate to target dispatch when data is loaded
   useEffect(() => {
     if (!targetDispatchId || didAutoScroll.current || dispatches.length === 0) return;
