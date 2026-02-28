@@ -307,6 +307,12 @@ export default function AdminDispatches() {
         </Card>
       )}
 
+      {targetDispatchId && !dispatches.find(d => d.id === targetDispatchId) && dispatches.length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Dispatch no longer available.
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin h-6 w-6 border-2 border-slate-300 border-t-slate-700 rounded-full" />
