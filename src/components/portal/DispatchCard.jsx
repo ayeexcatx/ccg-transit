@@ -334,4 +334,6 @@ const DispatchCard = React.forwardRef(function DispatchCard({
       </CardContent>
     </Card>
   );
-}
+});
+
+export default DispatchCard;
