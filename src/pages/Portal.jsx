@@ -143,7 +143,7 @@ export default function Portal() {
     timeEntryMutation.mutate({ dispatch, truck, start, end });
   };
 
-  const currentList = tab === 'active' ? activeDispatches : historyDispatches;
+  const currentList = tab === 'upcoming' ? upcomingDispatches : tab === 'today' ? todayDispatches : historyDispatches;
   const sortedNotes = [...templateNotes].sort((a, b) => (a.priority || 0) - (b.priority || 0));
 
   // Detect if targeted dispatch is not found/visible
