@@ -148,17 +148,21 @@ export default function DispatchDetailDrawer({
 
           {dispatch.status !== 'Confirmed' && (
             <>
-              {dispatch.instructions && (
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Instructions</p>
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{dispatch.instructions}</p>
-                </div>
-              )}
-
-              {dispatch.notes && (
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</p>
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{dispatch.notes}</p>
+              {(dispatch.instructions || dispatch.notes) && (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-3">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Assignment 1</p>
+                  {dispatch.instructions && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 mb-1">Instructions</p>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{dispatch.instructions}</p>
+                    </div>
+                  )}
+                  {dispatch.notes && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 mb-1">Notes</p>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{dispatch.notes}</p>
+                    </div>
+                  )}
                 </div>
               )}
 
