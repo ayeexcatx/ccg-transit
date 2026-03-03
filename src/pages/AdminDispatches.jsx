@@ -505,44 +505,26 @@ export default function AdminDispatches() {
         </DialogContent>
       </Dialog>
 
-      {/* Preview Dialog */}
-      <Dialog open={!!previewDispatch} onOpenChange={() => setPreviewDispatch(null)}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Dispatch Preview & Confirmations</DialogTitle>
-          </DialogHeader>
-          {previewDispatch && (
-            <div className="space-y-6">
-              {/* Portal Preview */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Portal View Preview</h3>
-                <DispatchCard
-                  dispatch={previewDispatch}
-                  session={{
-                    code_type: 'Admin',
-                    allowed_trucks: previewDispatch.trucks_assigned || []
-                  }}
-                  confirmations={confirmations.filter(c => c.dispatch_id === previewDispatch.id)}
-                  timeEntries={timeEntries.filter(te => te.dispatch_id === previewDispatch.id)}
-                  templateNotes={templateNotes}
-                  onConfirm={() => {}}
-                  onTimeEntry={() => {}}
-                  companyName={companyMap[previewDispatch.company_id]}
-                />
-              </div>
+      {/* Dispatch Detail Drawer */}
+      <DispatchDetailDrawer
+        open={!!previewDispatch}
+        onClose={() => setPreviewDispatch(null)}
+        dispatch={previewDispatch}
+        session={{ code_type: 'Admin', allowed_trucks: previewDispatch?.trucks_assigned || [] }}
+        confirmations={previewDispatch ? confirmations.filter(c => c.dispatch_id === previewDispatch.id) : []}
+        timeEntries={previewDispatch ? timeEntries.filter(te => te.dispatch_id === previewDispatch.id) : []}
+        templateNotes={templateNotes}
+        onConfirm={() => {}}
+        onTimeEntry={() => {}}
+        companyName={previewDispatch ? companyMap[previewDispatch.company_id] : ''}
+      />
 
-              {/* Confirmations by Status */}
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Confirmations by Status</h3>
-                <AdminConfirmationsPanel
-                  dispatch={previewDispatch}
-                  confirmations={confirmations.filter(c => c.dispatch_id === previewDispatch.id)}
-                />
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Confirmations panel as secondary dialog triggered from drawer — kept inline for now */}
+      {previewDispatch && (
+        <Dialog open={false}>
+          <DialogContent />
+        </Dialog>
+      )}
     </div>
   );
 }
