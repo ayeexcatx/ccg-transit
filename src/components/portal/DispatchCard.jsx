@@ -37,14 +37,14 @@ const DispatchCard = React.forwardRef(function DispatchCard({
   return (
     <div ref={ref}>
       <Card
-        className="overflow-hidden border-slate-200 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer"
+        className={`overflow-hidden border-slate-200 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer ${statusBorderAccent[dispatch.status] || ''}`}
         onClick={() => setDrawerOpen(true)}
       >
         <CardContent className="p-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge className={`${statusColors[dispatch.status]} border text-xs font-medium`}>
+                <Badge className={`${statusBadgeColors[dispatch.status]} border text-xs font-medium`}>
                   {dispatch.status}
                 </Badge>
                 {dispatch.toll_status && (
@@ -66,7 +66,7 @@ const DispatchCard = React.forwardRef(function DispatchCard({
               {dispatch.status === 'Confirmed' ? (
                 <>
                   <h3 className="font-semibold text-slate-900">Confirmed Dispatch</h3>
-                  <p className="text-sm text-slate-500">Details to follow</p>
+                  <p className="text-xs text-blue-600 italic mt-0.5">Confirmation only — details to follow</p>
                 </>
               ) : (
                 <>
