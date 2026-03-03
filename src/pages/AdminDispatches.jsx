@@ -139,6 +139,7 @@ export default function AdminDispatches() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const targetDispatchId = urlParams.get('dispatchId');
+  const targetNotificationId = urlParams.get('notificationId');
 
   const { data: dispatches = [], isLoading } = useQuery({
     queryKey: ['dispatches-admin'],
