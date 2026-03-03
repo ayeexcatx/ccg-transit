@@ -61,7 +61,7 @@ export default function NotificationBell({ session }) {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read_flag).length;
+  const unreadCount = rawNotifications.filter(n => !n.read_flag).length;
 
   return (
     <Popover>
