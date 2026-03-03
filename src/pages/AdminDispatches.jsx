@@ -386,7 +386,7 @@ export default function AdminDispatches() {
             <div key={d.id} ref={el => dispatchRefs.current[d.id] = el} className="rounded-lg transition-all duration-500">
               <Card
                 className={`hover:shadow-md transition-shadow cursor-pointer ${statusBorderAccent[d.status] || ''}`}
-                onClick={() => setPreviewDispatch(d)}
+                onClick={() => openDrawer(d)}
               >
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
