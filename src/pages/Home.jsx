@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useSession } from '../components/session/SessionContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bell, Clock, MapPin, Sun, Moon, ArrowRight, CheckCircle2, AlertCircle, Megaphone } from 'lucide-react';
-import { format, parseISO, startOfDay } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { getDispatchBucket } from '../components/portal/dispatchBuckets';
 import { createPageUrl } from '@/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationStatusBadge from '../components/notifications/NotificationStatusBadge';
+import { useOwnerNotifications } from '../components/notifications/useOwnerNotifications';
 
 const statusColors = {
   Confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -19,7 +20,7 @@ const statusColors = {
   Canceled: 'bg-red-50 text-red-700 border-red-200',
 };
 
-function MiniDispatchCard({ dispatch, companyName }) {
+function MiniDispatchCard({ dispatch }) {
   return (
     <Link to={createPageUrl(`Portal?dispatchId=${dispatch.id}`)}>
       <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all cursor-pointer">
@@ -33,11 +34,7 @@ function MiniDispatchCard({ dispatch, companyName }) {
             <Badge className={`${statusColors[dispatch.status]} border text-xs`}>{dispatch.status}</Badge>
             <span className="text-xs text-slate-500">{dispatch.date && format(new Date(dispatch.date), 'MMM d')}</span>
           </div>
-          {dispatch.status === 'Confirmed' ? (
-            <p className="text-sm font-medium text-slate-700">Confirmed Dispatch</p>
-          ) : (
-            <p className="text-sm font-medium text-slate-700 truncate">{dispatch.client_name || 'Dispatch'}</p>
-          )}
+          <p className="text-sm font-medium text-slate-700 truncate">{dispatch.client_name || 'Dispatch'}</p>
           <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 flex-wrap">
             {dispatch.start_time && (
               <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{dispatch.start_time}</span>
@@ -57,22 +54,16 @@ function MiniDispatchCard({ dispatch, companyName }) {
 
 export default function Home() {
   const { session } = useSession();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const allowedTrucks = session?.allowed_trucks || [];
+
+  // Shared notifications hook — same query key as bell + notifications page
+  const { notifications, unreadCount, markRead } = useOwnerNotifications(session);
+
   const { data: dispatches = [] } = useQuery({
     queryKey: ['portal-dispatches', session?.company_id],
     queryFn: () => base44.entities.Dispatch.filter({ company_id: session.company_id }, '-date', 200),
     enabled: !!session?.company_id,
-  });
-
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications', session?.id],
-    queryFn: () => base44.entities.Notification.filter({
-      recipient_type: 'AccessCode',
-      recipient_access_code_id: session.id,
-    }, '-created_date', 30),
-    enabled: !!session,
-    refetchInterval: 30000,
   });
 
   const { data: confirmations = [] } = useQuery({
@@ -89,7 +80,6 @@ export default function Home() {
     refetchInterval: 60000,
   });
 
-  // Filter announcements visible to this session
   const announcements = useMemo(() => {
     return allAnnouncements.filter(a => {
       if (a.target_type === 'All') return true;
@@ -98,13 +88,6 @@ export default function Home() {
       return false;
     }).sort((a, b) => (a.priority || 3) - (b.priority || 3));
   }, [allAnnouncements, session]);
-
-  const markAsReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { read_flag: true }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-  });
-
-  const allowedTrucks = session?.allowed_trucks || [];
 
   const filteredDispatches = useMemo(() => {
     return dispatches.filter(d => {
@@ -129,12 +112,12 @@ export default function Home() {
     [filteredDispatches]
   );
 
+  // Unread notifications sorted newest first (already sorted by hook)
   const unreadNotifications = useMemo(() =>
-    notifications.filter(n => !n.read_flag).sort((a, b) => new Date(b.created_date) - new Date(a.created_date)),
+    notifications.filter(n => !n.read_flag),
     [notifications]
   );
 
-  // Pending confirmations: dispatches where not all trucks have confirmed the current status
   const pendingConfirmationsCount = useMemo(() => {
     if (session?.code_type !== 'CompanyOwner') return 0;
     return filteredDispatches.filter(d => {
@@ -152,7 +135,7 @@ export default function Home() {
       const notifParam = !n.read_flag ? `&notificationId=${n.id}` : '';
       navigate(createPageUrl(`Portal?dispatchId=${n.related_dispatch_id}${notifParam}`));
     } else {
-      if (!n.read_flag) markAsReadMutation.mutate(n.id);
+      if (!n.read_flag) markRead(n.id);
     }
   };
 
@@ -161,7 +144,6 @@ export default function Home() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      {/* Header */}
       <div>
         <h2 className="text-xl font-bold text-slate-900">Home</h2>
         <p className="text-sm text-slate-500">
@@ -193,7 +175,6 @@ export default function Home() {
           </h3>
           <Card className="border-red-100">
             <CardContent className="p-0 divide-y divide-slate-100">
-              {/* Pending confirmations banner */}
               {pendingConfirmationsCount > 0 && (
                 <Link to={createPageUrl('Portal')}>
                   <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer">
@@ -205,7 +186,6 @@ export default function Home() {
                   </div>
                 </Link>
               )}
-              {/* Unread notifications */}
               {unreadNotifications.map(n => (
                 <div
                   key={n.id}
@@ -271,7 +251,6 @@ export default function Home() {
         </Card>
       </section>
 
-      {/* View All */}
       <Link to={createPageUrl('Portal')}>
         <Button className="w-full bg-slate-900 hover:bg-slate-800">
           View All Dispatches
