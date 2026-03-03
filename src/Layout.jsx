@@ -19,7 +19,7 @@ function LayoutInner({ children, currentPageName }) {
     // Admin guard
     const adminPages = ['AdminDashboard', 'AdminCompanies', 'AdminAccessCodes', 'AdminDispatches', 'AdminTemplateNotes'];
     if (adminPages.includes(currentPageName) && session.code_type !== 'Admin') {
-      window.location.href = createPageUrl('Portal');
+      window.location.href = createPageUrl('Home');
     }
   }, [session, loading, currentPageName]);
 
