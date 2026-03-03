@@ -20,11 +20,9 @@ export default function Portal() {
   const [tab, setTab] = useState('today');
   const queryClient = useQueryClient();
   const dispatchRefs = useRef({});
-  // drawerDispatchId: the dispatch whose drawer should be open
   const [drawerDispatchId, setDrawerDispatchId] = useState(null);
   const didAutoOpen = useRef(false);
 
-  // Read URL params
   const urlParams = new URLSearchParams(window.location.search);
   const targetDispatchId = urlParams.get('dispatchId');
   const targetNotificationId = urlParams.get('notificationId');
@@ -59,6 +57,8 @@ export default function Portal() {
     mutationFn: (data) => base44.entities.Confirmation.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['confirmations'] }),
   });
+
+  const today = startOfDay(new Date());
 
   const timeEntryMutation = useMutation({
     mutationFn: async ({ dispatch, truck, start, end }) => {
@@ -109,12 +109,11 @@ export default function Portal() {
     });
   }, [dispatches, allowedTrucks]);
 
-  const today = startOfDay(new Date());
-
   const upcomingDispatches = useMemo(() => filteredDispatches
     .filter(d => getDispatchBucket(d) === 'upcoming')
     .sort((a, b) => {
-      const dateDiff = parseISO(a.date) - parseISO(b.date);
+      // String compare on YYYY-MM-DD is safe — no Date parsing needed
+      const dateDiff = a.date.localeCompare(b.date);
       if (dateDiff !== 0) return dateDiff;
       return (a.start_time || 'zzz').localeCompare(b.start_time || 'zzz');
     }), [filteredDispatches]);
@@ -131,18 +130,16 @@ export default function Portal() {
   const historyDispatches = useMemo(() => filteredDispatches
     .filter(d => {
       if (getDispatchBucket(d) !== 'history') return false;
-      // For past (non-archived) dispatches, only show if time entry exists
       if (!d.archived_flag) return myTrucksForHistory(d, timeEntries, session);
       return true;
     })
-    .sort((a, b) => parseISO(b.date) - parseISO(a.date)),
+    .sort((a, b) => b.date.localeCompare(a.date)),
   [filteredDispatches, timeEntries]);
 
   const companyMap = {};
   companies.forEach(c => { companyMap[c.id] = c.name; });
 
   const handleConfirm = (dispatch, truck, confType) => {
-    // Prevent duplicate: same dispatch + truck + type
     const alreadyConfirmed = confirmations.some(c =>
       c.dispatch_id === dispatch.id &&
       c.truck_number === truck &&
@@ -158,17 +155,14 @@ export default function Portal() {
       confirmed_at: new Date().toISOString(),
     });
 
-    // Notify admin of truck confirmation
     const companyName = companyMap[dispatch.company_id];
     notifyTruckConfirmation(dispatch, truck, companyName);
 
-    // Build updated confirmation list for resolution check
     const updatedConfirmations = [
       ...confirmations,
       { dispatch_id: dispatch.id, truck_number: truck, confirmation_type: confType }
     ];
 
-    // Resolve owner notification if all trucks for this status are now confirmed
     resolveOwnerNotificationIfComplete(dispatch, updatedConfirmations, []);
 
     // Auto-archive Canceled dispatch once all trucks have confirmed cancellation
@@ -195,11 +189,9 @@ export default function Portal() {
   const currentList = tab === 'upcoming' ? upcomingDispatches : tab === 'today' ? todayDispatches : historyDispatches;
   const sortedNotes = [...templateNotes].sort((a, b) => (a.priority || 0) - (b.priority || 0));
 
-  // Detect if targeted dispatch is not found/visible
   const dispatchNotFound = targetDispatchId && dispatches.length > 0 &&
     !filteredDispatches.find(d => d.id === targetDispatchId);
 
-  // Auto-navigate to target dispatch when data is loaded
   useEffect(() => {
     if (!targetDispatchId || didAutoOpen.current || dispatches.length === 0) return;
 
@@ -216,16 +208,14 @@ export default function Portal() {
     const correctTab = inUpcoming ? 'upcoming' : inToday ? 'today' : inHistory ? 'history' : null;
     if (!correctTab) { didAutoOpen.current = true; return; }
 
-    // Switch tab first, then open drawer once tab is correct
     if (tab !== correctTab) {
       setTab(correctTab);
-      return; // re-run effect after tab change
+      return;
     }
 
     didAutoOpen.current = true;
     setDrawerDispatchId(targetDispatchId);
 
-    // Mark notification as read after drawer opens
     if (targetNotificationId) {
       base44.entities.Notification.update(targetNotificationId, { read_flag: true })
         .then(() => queryClient.invalidateQueries({ queryKey: ['notifications'] }));
