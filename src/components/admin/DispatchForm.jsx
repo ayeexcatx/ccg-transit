@@ -181,7 +181,7 @@ export default function DispatchForm({ dispatch, companies, accessCodes, onSave,
         )}
       </div>
 
-      {!isConfirmed && !isCanceled && (
+      {!isConfirmed && (
         <>
           {/* Assignment 1 — primary */}
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
@@ -216,14 +216,14 @@ export default function DispatchForm({ dispatch, companies, accessCodes, onSave,
               <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
             </div>
           </div>
-        </>
-      )}
 
-      {isCanceled && (
-        <div>
-          <Label>Cancellation Reason *</Label>
-          <Textarea value={form.canceled_reason} onChange={e => setForm({ ...form, canceled_reason: e.target.value })} rows={2} />
-        </div>
+          {isCanceled && (
+            <div>
+              <Label>Cancellation Reason *</Label>
+              <Textarea value={form.canceled_reason} onChange={e => setForm({ ...form, canceled_reason: e.target.value })} rows={2} placeholder="Reason for cancellation..." />
+            </div>
+          )}
+        </>
       )}
 
       {/* Trucks */}
