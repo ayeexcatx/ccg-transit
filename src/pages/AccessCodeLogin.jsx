@@ -32,7 +32,7 @@ export default function AccessCodeLogin() {
     if (match.code_type === 'Admin') {
       window.location.href = createPageUrl('AdminDashboard');
     } else {
-      window.location.href = createPageUrl('Portal');
+      window.location.href = createPageUrl('Home');
     }
   };
 
