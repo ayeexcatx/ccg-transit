@@ -114,7 +114,7 @@ export default function Home() {
 
   const todayDispatches = useMemo(() =>
     filteredDispatches
-      .filter(d => !d.archived_flag && d.status !== 'Canceled' && d.date && isToday(new Date(d.date)))
+      .filter(d => getDispatchBucket(d) === 'today')
       .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
       .slice(0, 5),
     [filteredDispatches]
@@ -122,10 +122,10 @@ export default function Home() {
 
   const upcomingDispatches = useMemo(() =>
     filteredDispatches
-      .filter(d => !d.archived_flag && d.status !== 'Canceled' && d.date && new Date(d.date) > today)
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .filter(d => getDispatchBucket(d) === 'upcoming')
+      .sort((a, b) => parseISO(a.date) - parseISO(b.date))
       .slice(0, 5),
-    [filteredDispatches, today]
+    [filteredDispatches]
   );
 
   const unreadNotifications = useMemo(() =>
