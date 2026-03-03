@@ -82,6 +82,23 @@ export default function Home() {
     enabled: session?.code_type === 'CompanyOwner',
   });
 
+  const { data: allAnnouncements = [] } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => base44.entities.Announcement.filter({ active_flag: true }, 'priority', 50),
+    enabled: !!session,
+    refetchInterval: 60000,
+  });
+
+  // Filter announcements visible to this session
+  const announcements = useMemo(() => {
+    return allAnnouncements.filter(a => {
+      if (a.target_type === 'All') return true;
+      if (a.target_type === 'Companies') return (a.target_company_ids || []).includes(session?.company_id);
+      if (a.target_type === 'AccessCodes') return (a.target_access_code_ids || []).includes(session?.id);
+      return false;
+    }).sort((a, b) => (a.priority || 3) - (b.priority || 3));
+  }, [allAnnouncements, session]);
+
   const markAsReadMutation = useMutation({
     mutationFn: (id) => base44.entities.Notification.update(id, { read_flag: true }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
