@@ -39,7 +39,7 @@ function AdminConfirmationsPanel({ dispatch, confirmations }) {
       {/* Current status section */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <Badge className={`${statusColors[currentStatus]} border text-xs`}>{currentStatus}</Badge>
+          <Badge className={`${statusBadgeColors[currentStatus]} border text-xs`}>{currentStatus}</Badge>
           <span className="text-xs text-slate-500">current status</span>
         </div>
         <div className="space-y-1.5">
@@ -92,7 +92,7 @@ function AdminConfirmationsPanel({ dispatch, confirmations }) {
               {priorStatuses.map(status => (
                 <div key={status}>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <Badge className={`${statusColors[status]} border text-xs`}>{status}</Badge>
+                    <Badge className={`${statusBadgeColors[status]} border text-xs`}>{status}</Badge>
                     <span className="text-xs text-slate-400">prior status</span>
                   </div>
                   <div className="space-y-1">
@@ -335,12 +335,12 @@ export default function AdminDispatches() {
         <div className="grid gap-3">
           {filtered.map(d => (
             <div key={d.id} ref={el => dispatchRefs.current[d.id] = el} className="rounded-lg transition-all duration-500">
-              <Card className="hover:shadow-sm transition-shadow">
+              <Card className={`hover:shadow-sm transition-shadow ${statusBorderAccent[d.status] || ''}`}>
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <Badge className={`${statusColors[d.status]} border text-xs`}>{d.status}</Badge>
+                      <Badge className={`${statusBadgeColors[d.status]} border text-xs`}>{d.status}</Badge>
                       {d.archived_flag && (
                         <Badge className="bg-amber-50 text-amber-700 border border-amber-200 text-xs flex items-center gap-1">
                           <Archive className="h-2.5 w-2.5" />Archived
