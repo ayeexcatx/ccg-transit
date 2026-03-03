@@ -19,8 +19,9 @@ export default function Portal() {
   const [tab, setTab] = useState('today');
   const queryClient = useQueryClient();
   const dispatchRefs = useRef({});
-  const [expandedDispatchId, setExpandedDispatchId] = useState(null);
-  const didAutoScroll = useRef(false);
+  // drawerDispatchId: the dispatch whose drawer should be open
+  const [drawerDispatchId, setDrawerDispatchId] = useState(null);
+  const didAutoOpen = useRef(false);
 
   // Read ?dispatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
