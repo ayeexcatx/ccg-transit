@@ -1,43 +1,19 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { createPageUrl } from '@/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationStatusBadge from './NotificationStatusBadge';
+import { useOwnerNotifications } from './useOwnerNotifications';
 
 export default function NotificationBell({ session }) {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-
-  const { data: rawNotifications = [] } = useQuery({
-    queryKey: ['notifications', session?.id],
-    queryFn: async () => {
-      if (!session) return [];
-      if (session.code_type === 'Admin') {
-        return base44.entities.Notification.filter({ recipient_type: 'Admin' }, '-created_date', 20);
-      }
-      return base44.entities.Notification.filter({ 
-        recipient_type: 'AccessCode',
-        recipient_access_code_id: session.id 
-      }, '-created_date', 20);
-    },
-    enabled: !!session,
-    refetchInterval: 30000,
-  });
-
-  const notifications = [...rawNotifications].sort((a, b) => {
-    if (a.read_flag !== b.read_flag) return a.read_flag ? 1 : -1;
-    return new Date(b.created_date) - new Date(a.created_date);
-  });
+  const { notifications, unreadCount, markRead } = useOwnerNotifications(session);
 
   const { data: confirmations = [] } = useQuery({
     queryKey: ['confirmations-bell'],
@@ -46,22 +22,15 @@ export default function NotificationBell({ session }) {
     refetchInterval: 30000,
   });
 
-  const markAsReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { read_flag: true }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-  });
-
   const handleNotificationClick = (n) => {
     if (n.related_dispatch_id) {
       const targetPage = session.code_type === 'Admin' ? 'AdminDispatches' : 'Portal';
       const notifParam = !n.read_flag ? `&notificationId=${n.id}` : '';
       navigate(createPageUrl(`${targetPage}?dispatchId=${n.related_dispatch_id}${notifParam}`));
     } else {
-      if (!n.read_flag) markAsReadMutation.mutate(n.id);
+      if (!n.read_flag) markRead(n.id);
     }
   };
-
-  const unreadCount = rawNotifications.filter(n => !n.read_flag).length;
 
   return (
     <Popover>
@@ -80,9 +49,7 @@ export default function NotificationBell({ session }) {
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-sm">Notifications</h3>
             <Link to={createPageUrl('Notifications')}>
-              <Button variant="ghost" size="sm" className="text-xs h-7">
-                View All
-              </Button>
+              <Button variant="ghost" size="sm" className="text-xs h-7">View All</Button>
             </Link>
           </div>
         </div>
