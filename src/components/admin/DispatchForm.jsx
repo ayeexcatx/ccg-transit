@@ -186,35 +186,38 @@ export default function DispatchForm({ dispatch, companies, accessCodes, onSave,
 
       {!isConfirmed && !isCanceled && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label>Start Time {isFullDispatch && '(recommended)'}</Label>
-              <Input type="time" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
+          {/* Assignment 1 — primary */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Assignment 1 (Primary)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label>Start Time {isFullDispatch && '(recommended)'}</Label>
+                <Input type="time" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
+              </div>
+              <div>
+                <Label>Toll Status</Label>
+                <Select value={form.toll_status} onValueChange={v => setForm({ ...form, toll_status: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Authorized">Authorized</SelectItem>
+                    <SelectItem value="Unauthorized">Unauthorized</SelectItem>
+                    <SelectItem value="Included in Rate">Included in Rate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
-              <Label>Toll Status</Label>
-              <Select value={form.toll_status} onValueChange={v => setForm({ ...form, toll_status: v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Authorized">Authorized</SelectItem>
-                  <SelectItem value="Unauthorized">Unauthorized</SelectItem>
-                  <SelectItem value="Included in Rate">Included in Rate</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Start Location {isFullDispatch && '*'}</Label>
+              <Textarea value={form.start_location} onChange={e => setForm({ ...form, start_location: e.target.value })} rows={2} placeholder="Enter address (multi-line supported)" />
             </div>
-          </div>
-
-          <div>
-            <Label>Start Location {isFullDispatch && '*'}</Label>
-            <Textarea value={form.start_location} onChange={e => setForm({ ...form, start_location: e.target.value })} rows={2} placeholder="Enter address (multi-line supported)" />
-          </div>
-          <div>
-            <Label>Instructions {isFullDispatch && '(recommended)'}</Label>
-            <Textarea value={form.instructions} onChange={e => setForm({ ...form, instructions: e.target.value })} rows={2} />
-          </div>
-          <div>
-            <Label>Notes</Label>
-            <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
+            <div>
+              <Label>Instructions {isFullDispatch && '(recommended)'}</Label>
+              <Textarea value={form.instructions} onChange={e => setForm({ ...form, instructions: e.target.value })} rows={2} />
+            </div>
+            <div>
+              <Label>Notes</Label>
+              <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
+            </div>
           </div>
         </>
       )}
