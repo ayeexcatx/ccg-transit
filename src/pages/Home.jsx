@@ -148,14 +148,16 @@ export default function Home() {
         </section>
       )}
 
-      {/* Action Needed */}
-      {actionItems.length > 0 && (
+      {/* Action Needed — always visible for CompanyOwner */}
+      {session?.code_type === 'CompanyOwner' && (
         <section>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-500" />
               Action Needed
-              <Badge className="bg-red-500 text-white text-xs px-1.5 py-0">{actionItems.length}</Badge>
+              {actionItems.length > 0 && (
+                <Badge className="bg-red-500 text-white text-xs px-1.5 py-0">{actionItems.length}</Badge>
+              )}
             </h3>
             <Link to={createPageUrl('Notifications')} className="text-xs text-slate-400 hover:text-slate-600">
               View all notifications
@@ -163,45 +165,49 @@ export default function Home() {
           </div>
           <Card className="border-red-100">
             <CardContent className="p-0 divide-y divide-slate-100">
-              {actionItems.map(({ notification: n, dispatch: d }) => {
-                const trucks = d ? (d.trucks_assigned || []).filter(t => allowedTrucks.includes(t)) : [];
-                const truckLabel = trucks.length <= 2 ? trucks.join(', ') : `${trucks.length} trucks`;
-                return (
-                  <div
-                    key={n.id}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50/40 cursor-pointer bg-blue-50/20"
-                    onClick={() => handleActionClick(n)}
-                  >
-                    <Bell className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        {d && (
-                          <Badge className={`${statusColors[d.status]} border text-xs`}>{d.status}</Badge>
+              {actionItems.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">No actions needed</p>
+              ) : (
+                actionItems.map(({ notification: n, dispatch: d }) => {
+                  const trucks = d ? (d.trucks_assigned || []).filter(t => allowedTrucks.includes(t)) : [];
+                  const truckLabel = trucks.length <= 2 ? trucks.join(', ') : `${trucks.length} trucks`;
+                  return (
+                    <div
+                      key={n.id}
+                      className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50/40 cursor-pointer bg-blue-50/20"
+                      onClick={() => handleActionClick(n)}
+                    >
+                      <Bell className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                          {d && (
+                            <Badge className={`${statusColors[d.status]} border text-xs`}>{d.status}</Badge>
+                          )}
+                          {d?.date && (
+                            <span className="text-xs text-slate-500">
+                              {format(parseISO(d.date), 'MMM d')}
+                              {d.shift_time === 'Day'
+                                ? <Sun className="h-3 w-3 text-amber-400 inline ml-1" />
+                                : <Moon className="h-3 w-3 text-slate-400 inline ml-1" />}
+                            </span>
+                          )}
+                        </div>
+                        {d?.client_name && (
+                          <p className="text-sm font-medium text-slate-800 truncate">{d.client_name}</p>
                         )}
-                        {d?.date && (
-                          <span className="text-xs text-slate-500">
-                            {format(new Date(d.date), 'MMM d')}
-                            {d.shift_time === 'Day'
-                              ? <Sun className="h-3 w-3 text-amber-400 inline ml-1" />
-                              : <Moon className="h-3 w-3 text-slate-400 inline ml-1" />}
-                          </span>
+                        {trucks.length > 0 && (
+                          <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                            <Truck className="h-3 w-3" />
+                            {truckLabel}
+                          </p>
                         )}
+                        <p className="text-xs font-medium text-blue-600 mt-1">Confirm receipt →</p>
                       </div>
-                      {d?.client_name && (
-                        <p className="text-sm font-medium text-slate-800 truncate">{d.client_name}</p>
-                      )}
-                      {trucks.length > 0 && (
-                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Truck className="h-3 w-3" />
-                          {truckLabel}
-                        </p>
-                      )}
-                      <p className="text-xs font-medium text-blue-600 mt-1">Confirm receipt →</p>
+                      <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />
                     </div>
-                    <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </CardContent>
           </Card>
         </section>
