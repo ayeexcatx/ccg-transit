@@ -518,8 +518,8 @@ export default function AdminDispatches() {
         onClose={() => setPreviewDispatch(null)}
         dispatch={previewDispatch}
         session={{ code_type: 'Admin', allowed_trucks: previewDispatch?.trucks_assigned || [] }}
-        confirmations={previewDispatch ? confirmations.filter(c => c.dispatch_id === previewDispatch.id) : []}
-        timeEntries={previewDispatch ? timeEntries.filter(te => te.dispatch_id === previewDispatch.id) : []}
+        confirmations={drawerConfirmations}
+        timeEntries={drawerTimeEntries}
         templateNotes={templateNotes}
         onConfirm={() => {}}
         onTimeEntry={() => {}}
