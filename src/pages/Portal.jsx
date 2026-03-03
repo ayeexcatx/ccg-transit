@@ -23,9 +23,10 @@ export default function Portal() {
   const [drawerDispatchId, setDrawerDispatchId] = useState(null);
   const didAutoOpen = useRef(false);
 
-  // Read ?dispatchId from URL
+  // Read URL params
   const urlParams = new URLSearchParams(window.location.search);
   const targetDispatchId = urlParams.get('dispatchId');
+  const targetNotificationId = urlParams.get('notificationId');
 
   const { data: dispatches = [] } = useQuery({
     queryKey: ['portal-dispatches', session?.company_id],
