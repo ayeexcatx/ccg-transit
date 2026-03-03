@@ -78,7 +78,8 @@ export default function Home() {
   const { data: confirmations = [] } = useQuery({
     queryKey: ['confirmations'],
     queryFn: () => base44.entities.Confirmation.list('-confirmed_at', 500),
-    enabled: session?.code_type === 'CompanyOwner',
+    enabled: !!session,
+    refetchInterval: 30000,
   });
 
   const { data: allAnnouncements = [] } = useQuery({
