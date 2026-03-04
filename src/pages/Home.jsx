@@ -33,7 +33,7 @@ function MiniDispatchCard({ dispatch }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <Badge className={`${statusColors[dispatch.status]} border text-xs`}>{dispatch.status}</Badge>
-            <span className="text-xs text-slate-500">{dispatch.date && format(parseISO(dispatch.date), 'MMM d')}</span>
+            <span className="text-xs text-slate-500">{dispatch.date && format(parseISO(dateOnly(dispatch.date)), 'MMM d')}</span>
           </div>
           <p className="text-sm font-medium text-slate-700 truncate">{dispatch.client_name || 'Dispatch'}</p>
           <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 flex-wrap">
@@ -101,7 +101,7 @@ export default function Home() {
   const upcomingDispatches = useMemo(() =>
     filteredDispatches
       .filter(d => getDispatchBucket(d) === 'upcoming')
-      .sort((a, b) => parseISO(a.date) - parseISO(b.date))
+      .sort((a, b) => parseISO(dateOnly(a.date)) - parseISO(dateOnly(b.date)))
       .slice(0, 5),
     [filteredDispatches]
   );
@@ -186,7 +186,7 @@ export default function Home() {
                           )}
                           {d?.date && (
                             <span className="text-xs text-slate-500">
-                              {format(parseISO(d.date), 'MMM d')}
+                              {format(parseISO(dateOnly(d.date)), 'MMM d')}
                               {d.shift_time === 'Day'
                                 ? <Sun className="h-3 w-3 text-amber-400 inline ml-1" />
                                 : <Moon className="h-3 w-3 text-slate-400 inline ml-1" />}
