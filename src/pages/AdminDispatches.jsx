@@ -307,30 +307,39 @@ export default function AdminDispatches() {
 
   // Auto-open drawer for target dispatch from notification
   useEffect(() => {
-    if (!targetDispatchId || dispatches.length === 0) return;
-    if (lastOpenedIdRef.current === targetDispatchId) return;
+    const idToOpen = targetDispatchId || pendingOpenIdRef.current;
+    if (!idToOpen || dispatches.length === 0) return;
 
-    const target = dispatches.find(d => d.id === targetDispatchId);
-    if (!target) { lastOpenedIdRef.current = targetDispatchId; return; }
+    const target = dispatches.find(d => d.id === idToOpen);
+    if (!target) return;
 
-    const inUpcoming = upcomingDispatches.some(d => d.id === targetDispatchId);
-    const inToday = todayDispatches.some(d => d.id === targetDispatchId);
+    const inUpcoming = upcomingDispatches.some(d => d.id === idToOpen);
+    const inToday = todayDispatches.some(d => d.id === idToOpen);
     const correctTab = inUpcoming ? 'upcoming' : inToday ? 'today' : 'history';
-    setTab(correctTab);
 
-    lastOpenedIdRef.current = targetDispatchId;
-    openDrawer(target);
+    if (tab !== correctTab) {
+      pendingOpenIdRef.current = idToOpen;
+      setTab(correctTab);
+      return;
+    }
+
+    pendingOpenIdRef.current = null;
 
     if (targetNotificationId) {
       base44.entities.Notification.update(targetNotificationId, { read_flag: true })
         .then(() => queryClient.invalidateQueries({ queryKey: ['notifications'] }));
     }
 
-    setTimeout(() => {
-      const el = dispatchRefs.current[targetDispatchId];
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 200);
-  }, [targetDispatchId, dispatches, upcomingDispatches, todayDispatches]);
+    setPreviewDispatch(null);
+    setDrawerMountKey(`${idToOpen}:${Date.now()}`);
+    requestAnimationFrame(() => {
+      openDrawer(target);
+      setTimeout(() => {
+        const el = dispatchRefs.current[idToOpen];
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+    });
+  }, [location.search, dispatches, tab, upcomingDispatches, todayDispatches]);
 
   const handleSave = (formData) => {
     return new Promise((resolve, reject) => {
