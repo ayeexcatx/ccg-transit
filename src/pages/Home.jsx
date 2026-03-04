@@ -192,6 +192,11 @@ export default function Home() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-800 truncate">{n.title}</p>
                         <p className="text-xs text-slate-600 mt-0.5 line-clamp-2">{n.message}</p>
+                        {n.required_trucks?.length > 0 && (
+                          <div className="mt-1">
+                            <NotificationStatusBadge notification={n} confirmations={confirmations} />
+                          </div>
+                        )}
                       </div>
                       <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />
                     </div>
