@@ -21,7 +21,7 @@ import { useSession } from '../components/session/SessionContext';
 import { Label } from '@/components/ui/label';
 import { statusBadgeColors, statusBorderAccent } from '../components/portal/statusConfig';
 
-const STATUS_ORDER = ['Schedule', 'Dispatch', 'Amend', 'Cancel'];
+const STATUS_ORDER = ['Scheduled', 'Dispatch', 'Amended', 'Cancelled'];
 
 function AdminConfirmationsPanel({ dispatch, confirmations }) {
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -278,7 +278,7 @@ export default function AdminDispatches() {
       ...rest,
       company_id: '',
       trucks_assigned: [],
-      status: 'Schedule',
+      status: 'Scheduled',
       amendment_history: [],
       canceled_reason: '',
       _isCopy: true
@@ -376,7 +376,7 @@ export default function AdminDispatches() {
                 <SelectTrigger className="text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  {['Schedule', 'Dispatch', 'Amend', 'Cancel'].map(s => (
+                  {['Scheduled', 'Dispatch', 'Amended', 'Cancelled'].map(s => (
                     <SelectItem key={s} value={s}>{s}</SelectItem>
                   ))}
                 </SelectContent>
