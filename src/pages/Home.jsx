@@ -58,7 +58,7 @@ function MiniDispatchCard({ dispatch, companyName }) {
 
   return (
     <Link to={createPageUrl(`Portal?dispatchId=${dispatch.id}`)}>
-      <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all cursor-pointer">
+      <div className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer">
         <div className="shrink-0 mt-0.5">
           {dispatch.shift_time === 'Day Shift'
             ? <Sun className="h-4 w-4 text-amber-400" />
@@ -271,7 +271,7 @@ export default function Home() {
           )}
         </h3>
         <Card>
-          <CardContent className="p-1">
+          <CardContent className="p-1 space-y-2">
             {todayDispatches.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-4">No dispatches today</p>
             ) : (
@@ -291,7 +291,7 @@ export default function Home() {
           )}
         </h3>
         <Card>
-          <CardContent className="p-1">
+          <CardContent className="p-1 space-y-2">
             {upcomingDispatches.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-4">No upcoming dispatches</p>
             ) : (
