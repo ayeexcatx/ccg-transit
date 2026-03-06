@@ -36,6 +36,7 @@ export default function InstallPromptBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isEligibleIosSafari, setIsEligibleIosSafari] = useState(false);
   const [isHidden, setIsHidden] = useState(true);
+  const [isReadyToShow, setIsReadyToShow] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -45,7 +46,11 @@ export default function InstallPromptBanner() {
     }
 
     setIsEligibleIosSafari(isIosSafari());
-    setIsHidden(false);
+
+    const revealTimer = window.setTimeout(() => {
+      setIsReadyToShow(true);
+      setIsHidden(false);
+    }, 800);
 
     const onBeforeInstallPrompt = (event) => {
       event.preventDefault();
@@ -61,6 +66,7 @@ export default function InstallPromptBanner() {
     window.addEventListener('appinstalled', onAppInstalled);
 
     return () => {
+      window.clearTimeout(revealTimer);
       window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
       window.removeEventListener('appinstalled', onAppInstalled);
     };
@@ -72,7 +78,7 @@ export default function InstallPromptBanner() {
     return null;
   }, [deferredPrompt, isEligibleIosSafari]);
 
-  if (isHidden || !mode) {
+  if (!isReadyToShow || isHidden || !mode) {
     return null;
   }
 
@@ -98,11 +104,11 @@ export default function InstallPromptBanner() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold text-slate-900">
-              {isIosContent ? 'Add to Home Screen' : 'Install App'}
+              {isIosContent ? 'Install this app on your iPhone or iPad' : 'Install App'}
             </h2>
             <p className="mt-1 text-xs text-slate-600">
               {isIosContent
-                ? 'Install this app on your iPhone. Tap the Share button, then tap Add to Home Screen.'
+                ? 'Tap Share, then Add to Home Screen.'
                 : 'Install this app for faster access and a full-screen experience.'}
             </p>
           </div>
