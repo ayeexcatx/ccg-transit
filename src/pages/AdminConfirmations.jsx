@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '../utils';
 import { buildOpenConfirmationRows } from '@/components/notifications/openConfirmations';
+import { statusBadgeColors } from '@/components/portal/statusConfig';
 
 function formatDateTime(value) {
   if (!value) return '—';
@@ -20,6 +21,13 @@ function formatPendingAge(value) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '—';
   return formatDistanceToNowStrict(parsed, { addSuffix: true });
+}
+
+function formatDispatchDate(value) {
+  if (!value) return '—';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return format(parsed, 'MM-dd-yyyy');
 }
 
 export default function AdminConfirmations() {
@@ -149,8 +157,12 @@ export default function AdminConfirmations() {
                       onClick={() => openDispatch(row.dispatchId)}
                     >
                       <td className="px-3 py-2">{row.companyName}</td>
-                      <td className="px-3 py-2">{row.dispatchDate || '—'}</td>
-                      <td className="px-3 py-2"><Badge variant="outline">{row.status}</Badge></td>
+                      <td className="px-3 py-2">{formatDispatchDate(row.dispatchDate)}</td>
+                      <td className="px-3 py-2">
+                        <Badge className={`${statusBadgeColors[row.status] || 'bg-slate-100 text-slate-700 border-slate-200'} border`}>
+                          {row.status || '—'}
+                        </Badge>
+                      </td>
                       <td className="px-3 py-2 font-mono">{row.truckNumber}</td>
                       <td className="px-3 py-2">{[row.clientName, row.jobNumber].filter(Boolean).join(' / ') || '—'}</td>
                       <td className="px-3 py-2">{formatDateTime(row.createdAt)}</td>
@@ -202,10 +214,14 @@ export default function AdminConfirmations() {
                       onClick={() => openDispatch(row.dispatchId)}
                     >
                       <td className="px-3 py-2">{row.companyName}</td>
-                      <td className="px-3 py-2">{row.dispatchDate || '—'}</td>
+                      <td className="px-3 py-2">{formatDispatchDate(row.dispatchDate)}</td>
                       <td className="px-3 py-2 font-mono">{row.truckNumber || '—'}</td>
                       <td className="px-3 py-2">{[row.clientName, row.jobNumber].filter(Boolean).join(' / ') || '—'}</td>
-                      <td className="px-3 py-2"><Badge variant="outline">{row.confirmationType || '—'}</Badge></td>
+                      <td className="px-3 py-2">
+                        <Badge className={`${statusBadgeColors[row.confirmationType] || 'bg-slate-100 text-slate-700 border-slate-200'} border`}>
+                          {row.confirmationType || '—'}
+                        </Badge>
+                      </td>
                       <td className="px-3 py-2">{formatDateTime(row.confirmedAt)}</td>
                       <td className="px-3 py-2">{row.confirmedBy}</td>
                     </tr>
