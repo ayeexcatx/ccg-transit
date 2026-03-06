@@ -197,6 +197,14 @@ export default function Home() {
     }
   };
 
+  const handleActionClick = async (n) => {
+    if (isInformationalUpdateNotification(n) && !n.read_flag) {
+      await markReadAsync(n.id);
+    }
+
+    navigateFromAction(n);
+  };
+
   const priorityBg = { 1: 'bg-red-50 border-red-200', 2: 'bg-orange-50 border-orange-200', 3: 'bg-yellow-50 border-yellow-200', 4: 'bg-blue-50 border-blue-200', 5: 'bg-slate-50 border-slate-200' };
   const priorityText = { 1: 'text-red-800', 2: 'text-orange-800', 3: 'text-yellow-800', 4: 'text-blue-800', 5: 'text-slate-700' };
 

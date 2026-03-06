@@ -52,6 +52,14 @@ export default function Notifications() {
     }
   };
 
+  const handleNotificationClick = async (n) => {
+    if (n.related_dispatch_id && isInformationalUpdateNotification(n) && !n.read_flag) {
+      await markReadAsync(n.id);
+    }
+
+    navigateFromNotification(n);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -91,7 +99,13 @@ export default function Notifications() {
             <Card
               key={n.id}
               className={`hover:shadow-sm transition-shadow cursor-pointer ${!n.read_flag ? 'border-blue-200 bg-blue-50/30' : ''}`}
-              onClick={() => handleNotificationClick(n)}
+              onClick={() => {
+                if (isInformationalUpdateNotification(n)) {
+                  handleNotificationClick(n);
+                  return;
+                }
+                navigateFromNotification(n);
+              }}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-3">

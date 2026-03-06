@@ -44,6 +44,16 @@ export default function NotificationBell({ session }) {
     }
   };
 
+  const handleNotificationClick = async (n) => {
+    if (!session) return;
+
+    if (n.related_dispatch_id && isInformationalUpdateNotification(n) && !n.read_flag) {
+      await markReadAsync(n.id);
+    }
+
+    navigateFromNotification(n);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -73,7 +83,13 @@ export default function NotificationBell({ session }) {
               <div
                 key={n.id}
                 className={`p-3 border-b hover:bg-slate-50 cursor-pointer ${!n.read_flag ? 'bg-blue-50/30' : ''}`}
-                onClick={() => handleNotificationClick(n)}
+                onClick={() => {
+                  if (isInformationalUpdateNotification(n)) {
+                    handleNotificationClick(n);
+                    return;
+                  }
+                  navigateFromNotification(n);
+                }}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
