@@ -54,7 +54,6 @@ function TruckTimeRow({
   readOnly,
   draft,
   onChangeDraft,
-  onSaveAll,
   onCopyToAll,
   isFirstRow,
 }) {
@@ -63,24 +62,6 @@ function TruckTimeRow({
   );
   const start = draft?.start ?? existing?.start_time ?? '';
   const end = draft?.end ?? existing?.end_time ?? '';
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = (e) => {
-    e.preventDefault();
-
-    const didSave = onSaveAll();
-    if (!didSave) return;
-
-    setSaved(true);
-    setTimeout(() => {
-      document.getElementById('time-log-section')?.scrollIntoView({
-        behavior: 'auto',
-        block: 'start',
-      });
-    }, 0);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
   const workedHours = calculateWorkedHours(existing?.start_time, existing?.end_time);
 
   if (readOnly) {
@@ -141,18 +122,6 @@ function TruckTimeRow({
           <p className="text-xs text-slate-500 mb-1">Check-out</p>
           <Input type="time" value={end} onChange={e => onChangeDraft(truck, 'end', e.target.value)} className="text-sm h-8" />
         </div>
-        <div className="pt-5">
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleSave}
-            disabled={!start && !end}
-            className={`h-8 text-xs ${saved ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-900 hover:bg-slate-800'}`}
-          >
-            {saved ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5 mr-1" />}
-            {!saved && 'Save'}
-          </Button>
-        </div>
       </div>
     </div>
   );
@@ -163,6 +132,9 @@ export default function DispatchDetailDrawer({
   onConfirm, onTimeEntry, companyName, open, onClose
 }) {
   const [draftTimeEntries, setDraftTimeEntries] = useState({});
+  const [isSavingAll, setIsSavingAll] = useState(false);
+  const drawerScrollRef = React.useRef(null);
+  const timeLogSectionRef = React.useRef(null);
 
   React.useEffect(() => {
     setDraftTimeEntries({});
@@ -229,20 +201,45 @@ export default function DispatchDetailDrawer({
     });
   };
 
-  const handleSaveAll = () => {
-    const entriesToSave = myTrucks
-      .map((truck) => {
-        const existing = timeEntries.find((te) => te.dispatch_id === dispatch.id && te.truck_number === truck);
-        const start = draftTimeEntries[truck]?.start ?? existing?.start_time ?? '';
-        const end = draftTimeEntries[truck]?.end ?? existing?.end_time ?? '';
-        if (!start && !end) return null;
-        return { truck, start, end };
-      })
-      .filter(Boolean);
+  const entriesToSave = myTrucks
+    .map((truck) => {
+      const existing = timeEntries.find((te) => te.dispatch_id === dispatch.id && te.truck_number === truck);
+      const start = draftTimeEntries[truck]?.start ?? existing?.start_time ?? '';
+      const end = draftTimeEntries[truck]?.end ?? existing?.end_time ?? '';
+      if (!start && !end) return null;
+      return { truck, start, end };
+    })
+    .filter(Boolean);
 
-    if (entriesToSave.length === 0) return false;
-    onTimeEntry(dispatch, entriesToSave);
-    return true;
+  const hasUnsavedChanges = myTrucks.some((truck) => {
+    const draft = draftTimeEntries[truck];
+    if (!draft) return false;
+    const existing = timeEntries.find((te) => te.dispatch_id === dispatch.id && te.truck_number === truck);
+    const currentStart = existing?.start_time ?? '';
+    const currentEnd = existing?.end_time ?? '';
+    const nextStart = draft.start ?? currentStart;
+    const nextEnd = draft.end ?? currentEnd;
+    return nextStart !== currentStart || nextEnd !== currentEnd;
+  });
+
+  const handleSaveAll = async () => {
+    if (entriesToSave.length === 0 || !hasUnsavedChanges) return;
+    setIsSavingAll(true);
+    const previousScrollTop = drawerScrollRef.current?.scrollTop;
+
+    try {
+      await onTimeEntry(dispatch, entriesToSave);
+      setDraftTimeEntries({});
+      requestAnimationFrame(() => {
+        if (typeof previousScrollTop === 'number' && drawerScrollRef.current) {
+          drawerScrollRef.current.scrollTop = previousScrollTop;
+          return;
+        }
+        timeLogSectionRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      });
+    } finally {
+      setIsSavingAll(false);
+    }
   };
 
   const handleConfirmTruck = (truck) => {
@@ -256,7 +253,7 @@ export default function DispatchDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-0">
+      <SheetContent ref={drawerScrollRef} side="right" className="w-full sm:max-w-lg overflow-y-auto p-0">
         {/* Top bar */}
         <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 z-10">
           <Button
@@ -540,7 +537,7 @@ export default function DispatchDetailDrawer({
 
               {/* Time Log — CompanyOwner (editable) — only for non-canceled */}
               {isOwner && myTrucks.length > 0 && dispatch.status !== 'Cancelled' && (
-                <div id="time-log-section">
+                <div id="time-log-section" ref={timeLogSectionRef}>
                   <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Time Log</p>
                   <div className="space-y-2">
                     {myTrucks.map(truck => (
@@ -552,11 +549,21 @@ export default function DispatchDetailDrawer({
                         readOnly={false}
                         draft={draftTimeEntries[truck]}
                         onChangeDraft={handleChangeDraft}
-                        onSaveAll={handleSaveAll}
                         onCopyToAll={handleCopyToAll}
                         isFirstRow={truck === myTrucks[0]}
                       />
                     ))}
+                  </div>
+                  <div className="pt-3">
+                    <Button
+                      type="button"
+                      onClick={handleSaveAll}
+                      disabled={!hasUnsavedChanges || isSavingAll || entriesToSave.length === 0}
+                      className="w-full bg-slate-900 hover:bg-slate-800"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {isSavingAll ? 'Saving…' : 'Save All Time Logs'}
+                    </Button>
                   </div>
                 </div>
               )}
