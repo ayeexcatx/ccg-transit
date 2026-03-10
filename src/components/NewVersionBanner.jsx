@@ -1,21 +1,66 @@
 import { useEffect, useState } from 'react';
-import { APP_VERSION, APP_VERSION_STORAGE_KEY } from '@/lib/appVersion';
+import {
+  APP_VERSION,
+  APP_VERSION_ENDPOINT,
+  APP_VERSION_CHECK_INTERVAL_MS,
+} from '@/lib/appVersion';
 import { Button } from '@/components/ui/button';
 
 export default function NewVersionBanner() {
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    const storedVersion = window.localStorage.getItem(APP_VERSION_STORAGE_KEY);
+    let isMounted = true;
 
-    if (!storedVersion) {
-      window.localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
-      return;
-    }
+    const checkForNewVersion = async () => {
+      try {
+        const cacheBust = `t=${Date.now()}`;
+        const url = `${APP_VERSION_ENDPOINT}?${cacheBust}`;
+        const response = await fetch(url, {
+          cache: 'no-store',
+          headers: {
+            'cache-control': 'no-cache',
+            pragma: 'no-cache',
+          },
+        });
 
-    if (storedVersion !== APP_VERSION) {
-      setShowBanner(true);
-    }
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        const deployedVersion = data?.version;
+
+        if (!deployedVersion) {
+          return;
+        }
+
+        if (deployedVersion !== APP_VERSION && isMounted) {
+          setShowBanner(true);
+        }
+      } catch {
+        // Keep this silent: version checks should never interrupt normal app usage.
+      }
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        checkForNewVersion();
+      }
+    };
+
+    checkForNewVersion();
+
+    const intervalId = window.setInterval(checkForNewVersion, APP_VERSION_CHECK_INTERVAL_MS);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+    };
   }, []);
 
   if (!showBanner) {
@@ -30,7 +75,6 @@ export default function NewVersionBanner() {
           <Button
             size="sm"
             onClick={() => {
-              window.localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
               window.location.reload();
             }}
             className="h-8 bg-amber-500 px-3 text-xs font-semibold text-white hover:bg-amber-600"
