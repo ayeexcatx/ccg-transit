@@ -52,12 +52,12 @@ import AdminAccessCodes from './pages/AdminAccessCodes';
 import AdminAnnouncements from './pages/AdminAnnouncements';
 import AdminCompanies from './pages/AdminCompanies';
 import AdminConfirmations from './pages/AdminConfirmations';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminDispatches from './pages/AdminDispatches';
 import AdminTemplateNotes from './pages/AdminTemplateNotes';
-import Home from './pages/Home';
 import Notifications from './pages/Notifications';
 import Portal from './pages/Portal';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminDispatches from './pages/AdminDispatches';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -67,16 +67,16 @@ export const PAGES = {
     "AdminAnnouncements": AdminAnnouncements,
     "AdminCompanies": AdminCompanies,
     "AdminConfirmations": AdminConfirmations,
-    "AdminDashboard": AdminDashboard,
-    "AdminDispatches": AdminDispatches,
     "AdminTemplateNotes": AdminTemplateNotes,
-    "Home": Home,
     "Notifications": Notifications,
     "Portal": Portal,
+    "AdminDashboard": AdminDashboard,
+    "AdminDispatches": AdminDispatches,
+    "Home": Home,
 }
 
 export const pagesConfig = {
-    mainPage: "AdminDispatches",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };
