@@ -181,9 +181,6 @@ export default function DispatchDetailDrawer({
   const isAdmin = session.code_type === 'Admin';
   const isTruckUser = session.code_type === 'Truck';
   const isDriverUser = session.code_type === 'Driver';
-  const primaryReferenceTag = String(dispatch.reference_tag || '').trim();
-  const currentConfType = dispatch.status;
-  const hasAdditional = Array.isArray(dispatch.additional_assignments) && dispatch.additional_assignments.length > 0;
 
   const { data: companyDrivers = [] } = useQuery({
     queryKey: ['drivers', dispatch?.company_id],
