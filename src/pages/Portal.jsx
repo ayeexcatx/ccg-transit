@@ -499,8 +499,9 @@ Would you like to swap ${outgoingTruck} with ${incomingTruck}?`;
   const handleTimeEntry = async (dispatch, entries) => timeEntryMutation.mutateAsync({ dispatch, entries });
 
   const currentListBase = tab === 'upcoming' ? upcomingDispatches : tab === 'today' ? todayDispatches : historyDispatches;
-  const currentOpenDispatch = drawerDispatchId
-    ? filteredDispatches.find((d) => normalizeId(d.id) === drawerDispatchId)
+  const normalizedDrawerDispatchId = normalizeId(drawerDispatchId);
+  const currentOpenDispatch = normalizedDrawerDispatchId
+    ? filteredDispatches.find((d) => normalizeId(d.id) === normalizedDrawerDispatchId)
     : null;
   const currentList = currentOpenDispatch && !currentListBase.some((d) => normalizeId(d.id) === normalizeId(currentOpenDispatch.id))
     ? [currentOpenDispatch, ...currentListBase]
@@ -603,7 +604,7 @@ Would you like to swap ${outgoingTruck} with ${incomingTruck}?`;
       ) : (
         <div className="space-y-3">
           {currentList.map(d => {
-            const isForcedOpenCard = drawerDispatchId === normalizeId(d.id);
+            const isForcedOpenCard = normalizeId(drawerDispatchId) === normalizeId(d.id);
             const cardKey = isForcedOpenCard && drawerMountKey ? `${d.id}:${drawerMountKey}` : d.id;
 
             return (
