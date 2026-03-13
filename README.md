@@ -320,33 +320,30 @@ Create a .env.local file:
 
 # Troubleshooting #
 
+** GitHub Sync Stuck **
+If Base44 appears stuck syncing:
+- Verify GitHub merge completed
+- Refresh Base44 builder
+- Log out and back in
+- Trigger a manual sync from the Base44 interface
 
+** Missing Entities **
+If the app throws entity errors:
+Ensure all required entities exist in Base44.
+GitHub does not contain entity definitions.
 ---------------------------------------------------------------------
 
-**Prerequisites:** 
+# Future Improvements #
 
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
+** Potential future additions include: **
+- SMS notifications
+- Advanced dispatch analytics
+- Driver mobile interface improvements
+- Automated incident escalation workflows
+---------------------------------------------------------------------
 
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
+# References #
 
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
-```
+Base44 GitHub integration documentation:
+[https://docs.base44.com/Integrations/Using-GitHub]
 
-Run the app: `npm run dev`
-
-**Publish your changes**
-
-Open [Base44.com](http://Base44.com) and click on Publish.
-
-**Docs & Support**
-
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)
