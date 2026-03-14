@@ -17,6 +17,7 @@ import {
   notifyOwnerTruckReassignment,
   reconcileOwnerNotificationsForDispatch,
   expandCurrentStatusRequiredTrucks,
+  notifyDriverAssignmentChanges,
 } from '../components/notifications/createNotifications';
 import { useConfirmationsQuery, confirmationsQueryKey } from '../components/notifications/useConfirmationsQuery';
 
@@ -47,6 +48,33 @@ function myTrucksForHistory(dispatch, timeEntries, session) {
   if (trucks.length === 0) return false;
   const dispatchEntries = timeEntries.filter((te) => te.dispatch_id === dispatch.id && trucks.includes(te.truck_number));
   return areAllAssignedTrucksTimeComplete({ trucks_assigned: trucks }, dispatchEntries);
+}
+
+async function clearRemovedTruckDriverAssignments(dispatch, removedTrucks = []) {
+  if (!dispatch?.id || !removedTrucks.length) return;
+
+  const activeAssignments = await base44.entities.DriverDispatchAssignment.filter({
+    dispatch_id: dispatch.id,
+    active_flag: true,
+  }, '-assigned_datetime', 500);
+
+  const previousAssignments = activeAssignments || [];
+  const assignmentsToRemove = previousAssignments.filter((assignment) =>
+    removedTrucks.includes(assignment?.truck_number)
+  );
+
+  if (!assignmentsToRemove.length) return;
+
+  await Promise.all(assignmentsToRemove.map((assignment) =>
+    base44.entities.DriverDispatchAssignment.update(assignment.id, {
+      active_flag: false,
+    })
+  ));
+
+  const removedIds = new Set(assignmentsToRemove.map((assignment) => assignment.id));
+  const nextAssignments = previousAssignments.filter((assignment) => !removedIds.has(assignment.id));
+
+  await notifyDriverAssignmentChanges(dispatch, previousAssignments, nextAssignments);
 }
 
 export default function Portal() {
@@ -274,6 +302,9 @@ Would you like to swap ${outgoingTruck} with ${incomingTruck}?`;
           ],
         });
 
+        await clearRemovedTruckDriverAssignments(updatedDispatch, removedTrucks);
+        await clearRemovedTruckDriverAssignments(updatedConflictingDispatch, [incomingTruck]);
+
         const currentStatusConfirmations = confirmations.filter((confirmation) =>
           confirmation.dispatch_id === dispatch.id &&
           confirmation.confirmation_type === currentStatus
@@ -364,6 +395,8 @@ Would you like to swap ${outgoingTruck} with ${incomingTruck}?`;
           ...(Array.isArray(dispatch.admin_activity_log) ? dispatch.admin_activity_log : []),
         ],
       });
+
+      await clearRemovedTruckDriverAssignments(updatedDispatch, removedTrucks);
 
       const currentStatusConfirmations = confirmations.filter((confirmation) =>
         confirmation.dispatch_id === dispatch.id &&
