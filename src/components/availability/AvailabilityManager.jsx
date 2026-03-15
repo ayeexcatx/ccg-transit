@@ -353,7 +353,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
   };
 
   const renderWeeklyDefaultsMatrix = () => (
-    <Card>
+    <Card data-tour="recurring-weekly-defaults">
       <CardContent className="p-4 space-y-3">
         <h3 className="text-sm font-semibold text-slate-800">Recurring Weekly Defaults</h3>
         <p className="text-xs text-slate-500">Defaults apply when no date-specific override exists.</p>
@@ -431,7 +431,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
         <Card><CardContent className="p-6 text-sm text-slate-500">Select a company to view availability.</CardContent></Card>
       ) : (
         <>
-          <Card>
+          <Card data-tour="availability-controls">
             <CardContent className="p-3 space-y-3">
               <div className="text-center text-xs font-medium text-slate-600">{dateRangeLabel}</div>
               <div className="grid grid-cols-3 items-center">
