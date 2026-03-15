@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import TutorialProvider from '@/components/tutorial/TutorialProvider';
 
 function LayoutInner({ children, currentPageName }) {
   const { session, loading, logout } = useSession();
@@ -80,6 +81,7 @@ function LayoutInner({ children, currentPageName }) {
   const isActive = (pageName) => location.pathname === createPageUrl(pageName);
 
   return (
+    <TutorialProvider session={session}>
     <div className="bg-zinc-50 min-h-screen">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="bg-slate-50 mx-auto max-w-7xl px-4 sm:px-6">
@@ -172,22 +174,22 @@ function LayoutInner({ children, currentPageName }) {
               {canUsePortalTabs &&
               <nav className="flex items-center gap-1">
                 <Link to={createPageUrl('Home')}>
-                  <Button variant={isActive('Home') ? 'secondary' : 'ghost'} size="sm" className="text-xs">Home</Button>
+                  <Button variant={isActive('Home') ? 'secondary' : 'ghost'} size="sm" className="text-xs" data-tour="home-overview">Home</Button>
                 </Link>
                 <Link to={createPageUrl('Portal')}>
-                  <Button variant={isActive('Portal') ? 'secondary' : 'ghost'} size="sm" className="text-xs">Dispatches</Button>
+                  <Button variant={isActive('Portal') ? 'secondary' : 'ghost'} size="sm" className="text-xs" data-tour="dispatches-nav">Dispatches</Button>
                 </Link>
                 {isOwner && <Link to={createPageUrl('Availability')}>
-                  <Button variant={isActive('Availability') ? 'secondary' : 'ghost'} size="sm" className="text-xs flex items-center gap-1"><CalendarDays className="h-3 w-3" />Availability</Button>
+                  <Button variant={isActive('Availability') ? 'secondary' : 'ghost'} size="sm" className="text-xs flex items-center gap-1" data-tour="availability-nav"><CalendarDays className="h-3 w-3" />Availability</Button>
                 </Link>}
                 {isOwner && <Link to={createPageUrl('Drivers')}>
-                  <Button variant={isActive('Drivers') ? 'secondary' : 'ghost'} size="sm" className="text-xs flex items-center gap-1"><UserRound className="h-3 w-3" />Drivers</Button>
+                  <Button variant={isActive('Drivers') ? 'secondary' : 'ghost'} size="sm" className="text-xs flex items-center gap-1" data-tour="drivers-nav"><UserRound className="h-3 w-3" />Drivers</Button>
                 </Link>}
                 {isOwner && <Link to={createPageUrl('Notifications')}>
                   <Button variant={isActive('Notifications') ? 'secondary' : 'ghost'} size="sm" className="text-xs">Notifications</Button>
                 </Link>}
                 <Link to={createPageUrl('Incidents')}>
-                  <Button variant={isActive('Incidents') ? 'secondary' : 'ghost'} size="sm" className="text-xs">Incidents</Button>
+                  <Button variant={isActive('Incidents') ? 'secondary' : 'ghost'} size="sm" className="text-xs" data-tour="incidents-nav">Incidents</Button>
                 </Link>
               </nav>
               }
@@ -200,22 +202,22 @@ function LayoutInner({ children, currentPageName }) {
         {canUsePortalTabs &&
         <div className="md:hidden border-t border-slate-100 px-4 py-2 flex gap-1 overflow-x-auto">
             <Link to={createPageUrl('Home')}>
-              <Button variant={isActive('Home') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap">Home</Button>
+              <Button variant={isActive('Home') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap" data-tour="home-overview">Home</Button>
             </Link>
             <Link to={createPageUrl('Portal')}>
-              <Button variant={isActive('Portal') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap">Dispatches</Button>
+              <Button variant={isActive('Portal') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap" data-tour="dispatches-nav">Dispatches</Button>
             </Link>
             {isOwner && <Link to={createPageUrl('Availability')}>
-              <Button variant={isActive('Availability') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap">Availability</Button>
+              <Button variant={isActive('Availability') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap" data-tour="availability-nav">Availability</Button>
             </Link>}
             {isOwner && <Link to={createPageUrl('Drivers')}>
-              <Button variant={isActive('Drivers') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap">Drivers</Button>
+              <Button variant={isActive('Drivers') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap" data-tour="drivers-nav">Drivers</Button>
             </Link>}
             {isOwner && <Link to={createPageUrl('Notifications')}>
               <Button variant={isActive('Notifications') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap">Notifications</Button>
             </Link>}
             <Link to={createPageUrl('Incidents')}>
-              <Button variant={isActive('Incidents') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap">Incidents</Button>
+              <Button variant={isActive('Incidents') ? 'secondary' : 'ghost'} size="sm" className="text-xs whitespace-nowrap" data-tour="incidents-nav">Incidents</Button>
             </Link>
           </div>
         }
@@ -262,10 +264,11 @@ function LayoutInner({ children, currentPageName }) {
         }
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {children}
       </main>
-    </div>);
+    </div>
+    </TutorialProvider>);
 
 }
 

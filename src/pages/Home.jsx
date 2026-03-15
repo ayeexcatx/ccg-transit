@@ -287,12 +287,12 @@ export default function Home() {
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900">{homeHeading}</h2>
+        <h2 className="text-2xl font-semibold text-slate-900" data-tour="home-overview">{homeHeading}</h2>
       </div>
 
       {/* Announcements */}
       {announcements.length > 0 && (
-        <section>
+        <section data-tour="announcement-center">
           <Card className="rounded-lg border bg-white shadow-sm overflow-hidden">
             <div className="border-b border-slate-100 bg-blue-700 px-4 py-3">
               <div className="flex items-center gap-2">
@@ -313,7 +313,7 @@ export default function Home() {
 
       {/* Action Needed — always visible for CompanyOwner */}
       {session?.code_type === 'CompanyOwner' && (
-        <section>
+        <section data-tour="action-needed">
           <Card className="border-2 border-red-600">
             <div className="border-b border-red-800 bg-red-700 px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
@@ -374,7 +374,7 @@ export default function Home() {
       )}
 
       {/* Today's Dispatches */}
-      <section>
+      <section data-tour="dispatch-preview">
         <Card>
           <div className="border-b border-green-800 bg-green-700 px-4 py-3">
             <div className="flex items-center gap-2">
