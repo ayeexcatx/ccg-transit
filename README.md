@@ -21,8 +21,9 @@ The CCG Dispatch Hub manages the full operational lifecycle of dispatch logistic
 - Time entry logging
 - Incident reporting and tracking
 - Company announcements
-- Notification workflows
-- Dispatch record archival and HTML sync
+- Notification workflows (in-app + optional SMS delivery)
+- Dispatch record archival and HTML sync to Google Drive
+- Guided tutorials for company owners and dispatch drawer workflows
 
 The system is designed for real-time operational visibility between dispatch administrators and transportation companies.
 ---------------------------------------------------------------------
@@ -88,6 +89,8 @@ The system is designed for real-time operational visibility between dispatch adm
 - Confirmation reminders
 - Assignment notifications
 - System announcements
+- Optional SMS delivery through SignalWire for AccessCode recipients
+- SMS delivery logging in General entity records
 2. Notifications are role-aware and filtered by recipient.
 
 ** Announcement System **
@@ -100,6 +103,10 @@ The system is designed for real-time operational visibility between dispatch adm
 ** Runtime Refresh System **
 1. The app includes a runtime version refresh mechanism controlled by AppConfig.
 2. This allows administrators to force active users to reload the application when important updates are deployed.
+
+** Tutorial System **
+1. Guided tutorials are available for company owner onboarding and dispatch drawer actions.
+2. Tutorial overlays are role-aware and can be replayed from in-app tutorial triggers.
 ---------------------------------------------------------------------
 
 # User Roles #
@@ -166,6 +173,8 @@ The application is role-based and dynamically adjusts visibility and workflows.
 - Authentication via access codes
 - API services
 - Entity filtering and sorting
+- Serverless function execution (Deno)
+- Connector-based integrations (for example Google Drive sync)
 ---------------------------------------------------------------------
 
 # Base44 Entities #
@@ -215,22 +224,26 @@ src
  │    └── base44Client.js
  │
  ├── components
- │    ├── dispatch
+ │    ├── admin
+ │    ├── announcements
+ │    ├── availability
  │    ├── notifications
+ │    ├── portal
  │    ├── session
+ │    ├── tutorial
  │    └── ui
  │
  ├── hooks
- │
+ ├── lib
  ├── pages
- │    ├── admin
- │    ├── portal
- │    └── shared
- │
  ├── utils
- │
+ ├── Layout.jsx
  ├── pages.config.js
  └── main.jsx
+
+functions
+ ├── sendNotificationSms
+ └── syncDispatchHtmlToDrive
 -------------------------------------------------------------------
 
 ** Key files **
@@ -246,6 +259,15 @@ Main dispatch detail interface used across multiple pages.
 
 [AvailabilityManager.jsx]
 Implements company availability logic.
+
+[dispatchDriveSync.js]
+Builds dispatch HTML files and keeps dispatch record snapshots synchronized to Google Drive folders.
+
+[notificationSmsDelivery.js]
+Processes notification SMS eligibility, sends SMS through the backend function, and writes delivery logs.
+
+[NewVersionBanner.jsx]
+Checks AppConfig runtime version updates and prompts active users to reload when a new version is published.
 ---------------------------------------------------------------------
 
 # Core Workflows #
@@ -290,6 +312,14 @@ git clone [https://github.com/ayeexcatx/base44-ccg-dispatch-hub]
 Create a .env.local file:
 [VITE_BASE44_APP_ID=your_app_id]
 [VITE_BASE44_APP_BASE_URL=your_base44_backend_url]
+
+** Base44 Secrets / Connectors **
+1. For SMS delivery, configure these Base44 secrets for SignalWire:
+[SIGNALWIRE_PROJECT_ID]
+[SIGNALWIRE_AUTH_TOKEN]
+[SIGNALWIRE_SPACE_URL]
+[SIGNALWIRE_FROM_PHONE]
+2. For dispatch HTML sync, connect the Google Drive connector in Base44 and ensure the root folder is accessible.
 
 ** Run Development Server **
 `npm run dev`
@@ -336,10 +366,10 @@ GitHub does not contain entity definitions.
 # Future Improvements #
 
 ** Potential future additions include: **
-- SMS notifications
 - Advanced dispatch analytics
 - Driver mobile interface improvements
 - Automated incident escalation workflows
+- SMS template customization by role or notification type
 ---------------------------------------------------------------------
 
 # References #
