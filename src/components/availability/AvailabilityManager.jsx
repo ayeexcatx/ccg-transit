@@ -18,8 +18,8 @@ import {
   getStatusClass,
   normalizeCount,
   resolveAvailabilityForCompanyShift,
-  toDateKey,
-} from './availabilityRules';
+  toDateKey } from
+'./availabilityRules';
 
 const WEEKDAY_SHORT_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -40,7 +40,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
   const { data: companies = [] } = useQuery({
     queryKey: ['companies'],
     queryFn: () => base44.entities.Company.list(),
-    enabled: canSelectCompany,
+    enabled: canSelectCompany
   });
 
   const filteredCompanies = useMemo(() => {
@@ -52,13 +52,13 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
   const { data: defaults = [] } = useQuery({
     queryKey: ['company-availability-defaults', selectedCompanyId],
     queryFn: () => base44.entities.CompanyAvailabilityDefault.filter({ company_id: selectedCompanyId }, '-created_date', 200),
-    enabled: !!selectedCompanyId,
+    enabled: !!selectedCompanyId
   });
 
   const { data: overrides = [] } = useQuery({
     queryKey: ['company-availability-overrides', selectedCompanyId],
     queryFn: () => base44.entities.CompanyAvailabilityOverride.filter({ company_id: selectedCompanyId }, '-created_date', 500),
-    enabled: !!selectedCompanyId,
+    enabled: !!selectedCompanyId
   });
 
   const upsertDefaultMutation = useMutation({
@@ -67,7 +67,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       if (existing) return base44.entities.CompanyAvailabilityDefault.update(existing.id, payload);
       return base44.entities.CompanyAvailabilityDefault.create(payload);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-availability-defaults', selectedCompanyId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-availability-defaults', selectedCompanyId] })
   });
 
   const upsertOverrideMutation = useMutation({
@@ -76,7 +76,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       if (existing) return base44.entities.CompanyAvailabilityOverride.update(existing.id, payload);
       return base44.entities.CompanyAvailabilityOverride.create(payload);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-availability-overrides', selectedCompanyId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-availability-overrides', selectedCompanyId] })
   });
 
   const clearOverrideMutation = useMutation({
@@ -84,7 +84,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       const existing = overrides.find((item) => item.date === date && item.shift === shift);
       if (existing) await base44.entities.CompanyAvailabilityOverride.delete(existing.id);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-availability-overrides', selectedCompanyId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['company-availability-overrides', selectedCompanyId] })
   });
 
   const defaultMap = useMemo(() => {
@@ -106,7 +106,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       date,
       shift,
       defaultMap,
-      overrideMap,
+      overrideMap
     });
   };
 
@@ -117,13 +117,13 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       return {
         status: availability.status || STATUS_AVAILABLE,
         count: availability.available_truck_count ? String(availability.available_truck_count) : '',
-        operational: operationalShifts.includes(shift),
+        operational: operationalShifts.includes(shift)
       };
     };
 
     return {
       Day: createShiftState('Day'),
-      Night: createShiftState('Night'),
+      Night: createShiftState('Night')
     };
   };
 
@@ -140,12 +140,12 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       form[weekday] = {
         Day: {
           operational: operationalShifts.includes('Day'),
-          checked: (defaultMap.get(`${selectedCompanyId}-${weekday}-Day`)?.status || STATUS_AVAILABLE) === STATUS_AVAILABLE,
+          checked: (defaultMap.get(`${selectedCompanyId}-${weekday}-Day`)?.status || STATUS_AVAILABLE) === STATUS_AVAILABLE
         },
         Night: {
           operational: operationalShifts.includes('Night'),
-          checked: (defaultMap.get(`${selectedCompanyId}-${weekday}-Night`)?.status || STATUS_AVAILABLE) === STATUS_AVAILABLE,
-        },
+          checked: (defaultMap.get(`${selectedCompanyId}-${weekday}-Night`)?.status || STATUS_AVAILABLE) === STATUS_AVAILABLE
+        }
       };
     }
     setDefaultsEditorForm(form);
@@ -169,7 +169,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
             weekday,
             shift,
             status: shiftState.checked ? STATUS_AVAILABLE : STATUS_UNAVAILABLE,
-            available_truck_count: shiftState.checked ? existing?.available_truck_count ?? null : null,
+            available_truck_count: shiftState.checked ? existing?.available_truck_count ?? null : null
           })
         );
       }
@@ -204,7 +204,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
         status: shiftState.status,
         available_truck_count: shiftState.status === STATUS_UNAVAILABLE ? null : count,
         date: toDateKey(overrideEditingDate),
-        shift,
+        shift
       });
     });
 
@@ -227,8 +227,8 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       [shift]: {
         ...prev[shift],
         [field]: value,
-        ...(field === 'status' && value === STATUS_UNAVAILABLE ? { count: '' } : {}),
-      },
+        ...(field === 'status' && value === STATUS_UNAVAILABLE ? { count: '' } : {})
+      }
     }));
   };
 
@@ -251,9 +251,9 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
 
   const getDefaultMatrixDisplay = (weekday, shift) => {
     if (!getOperationalShifts(weekday).includes(shift)) return { label: 'N/A', className: 'text-slate-400' };
-    const availability = selectedCompanyId
-      ? defaultMap.get(`${selectedCompanyId}-${weekday}-${shift}`) || { status: STATUS_AVAILABLE, available_truck_count: null }
-      : { status: STATUS_AVAILABLE, available_truck_count: null };
+    const availability = selectedCompanyId ?
+    defaultMap.get(`${selectedCompanyId}-${weekday}-${shift}`) || { status: STATUS_AVAILABLE, available_truck_count: null } :
+    { status: STATUS_AVAILABLE, available_truck_count: null };
     if (availability.status === STATUS_UNAVAILABLE) return { label: 'No', className: 'text-red-700' };
     if (availability.available_truck_count) return { label: String(availability.available_truck_count), className: 'text-green-700' };
     return { label: 'Yes', className: 'text-green-700' };
@@ -293,49 +293,49 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
     return eachDayOfInterval({ start: gridStart, end: gridEnd });
   }, [activeDate, viewMode]);
 
-  const renderCompactCalendarSection = (dates, keyPrefix, outsideMonth = false) => (
-    <div className="space-y-1" key={keyPrefix}>
+  const renderCompactCalendarSection = (dates, keyPrefix, outsideMonth = false) =>
+  <div className="space-y-1" key={keyPrefix}>
       <div className={`grid gap-1 ${viewMode === 'day' ? 'grid-cols-[16px_repeat(3,minmax(0,1fr))]' : 'grid-cols-[16px_repeat(7,minmax(0,1fr))]'}`}>
         <div />
-        {dates.map((date) => (
-          <p key={`${keyPrefix}-head-${toDateKey(date)}`} className="text-[10px] text-center font-semibold text-slate-500">
+        {dates.map((date) =>
+      <p key={`${keyPrefix}-head-${toDateKey(date)}`} className="text-[10px] text-center font-semibold text-slate-500">
             {WEEKDAY_SHORT_LABELS[date.getDay()]}
           </p>
-        ))}
+      )}
       </div>
       <div className={`grid gap-1 ${viewMode === 'day' ? 'grid-cols-[16px_repeat(3,minmax(0,1fr))]' : 'grid-cols-[16px_repeat(7,minmax(0,1fr))]'}`}>
         <div />
-        {dates.map((date) => (
-          <p
-            key={`${keyPrefix}-date-${toDateKey(date)}`}
-            className={`text-[10px] text-center font-semibold ${outsideMonth && !isSameMonth(date, activeDate) ? 'text-slate-400' : 'text-slate-700'}`}
-          >
+        {dates.map((date) =>
+      <p
+        key={`${keyPrefix}-date-${toDateKey(date)}`}
+        className={`text-[10px] text-center font-semibold ${outsideMonth && !isSameMonth(date, activeDate) ? 'text-slate-400' : 'text-slate-700'}`}>
+
             {format(date, 'd')}
           </p>
-        ))}
+      )}
       </div>
 
-      {['Day', 'Night'].map((shift) => (
-        <div key={`${keyPrefix}-${shift}`} className={`grid gap-1 ${viewMode === 'day' ? 'grid-cols-[16px_repeat(3,minmax(0,1fr))]' : 'grid-cols-[16px_repeat(7,minmax(0,1fr))]'}`}>
+      {['Day', 'Night'].map((shift) =>
+    <div key={`${keyPrefix}-${shift}`} className={`grid gap-1 ${viewMode === 'day' ? 'grid-cols-[16px_repeat(3,minmax(0,1fr))]' : 'grid-cols-[16px_repeat(7,minmax(0,1fr))]'}`}>
           <p className="text-[10px] font-semibold text-slate-500 self-center">{shift === 'Day' ? 'D' : 'N'}</p>
           {dates.map((date) => {
-            const shiftDisplay = getCompactShiftDisplay(date, shift);
-            const faded = outsideMonth && !isSameMonth(date, activeDate);
-            return (
-              <button
-                key={`${keyPrefix}-${shift}-${toDateKey(date)}`}
-                type="button"
-                onClick={() => openOverrideEditorForDate(date)}
-                className={`rounded border p-1 text-[10px] font-semibold ${faded ? 'bg-slate-50/70 border-slate-200' : 'bg-white border-slate-300'} hover:bg-slate-50`}
-              >
+        const shiftDisplay = getCompactShiftDisplay(date, shift);
+        const faded = outsideMonth && !isSameMonth(date, activeDate);
+        return (
+          <button
+            key={`${keyPrefix}-${shift}-${toDateKey(date)}`}
+            type="button"
+            onClick={() => openOverrideEditorForDate(date)}
+            className={`rounded border p-1 text-[10px] font-semibold ${faded ? 'bg-slate-50/70 border-slate-200' : 'bg-white border-slate-300'} hover:bg-slate-50`}>
+
                 <span className={shiftDisplay.className}>{shiftDisplay.label}</span>
-              </button>
-            );
-          })}
+              </button>);
+
+      })}
         </div>
-      ))}
-    </div>
-  );
+    )}
+    </div>;
+
 
   const renderCompactCalendarView = () => {
     if (viewMode === 'day') return renderCompactCalendarSection(visibleDates, 'day');
@@ -348,15 +348,17 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
           const weekDates = visibleDates.slice(start, start + 7);
           return renderCompactCalendarSection(weekDates, `month-${weekIndex}`, true);
         })}
-      </div>
-    );
+      </div>);
+
   };
 
-  const renderWeeklyDefaultsMatrix = () => (
-    <Card data-tour="recurring-weekly-defaults">
+  const renderWeeklyDefaultsMatrix = () =>
+  <Card data-tour="recurring-weekly-defaults">
       <CardContent className="p-4 space-y-3">
         <h3 className="text-sm font-semibold text-slate-800">Recurring Weekly Defaults</h3>
-        <p className="text-xs text-slate-500">Defaults apply when no date-specific override exists.</p>
+        <p className="text-slate-500 text-sm font-medium">Select your default availability that is the same every week.
+(Ex.: All day shifts + Mon/Wed/Fri night shifts)
+If you need off on a day that when you are usually available (default), use the availability chart ABOVE to select Unavailable.</p>
         <div className="overflow-x-auto">
           <div className="min-w-[320px] divide-y divide-slate-200 rounded border border-slate-200">
             <div className="grid grid-cols-[1.6fr_1fr_1fr] bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
@@ -364,16 +366,14 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
               <span className="text-center">Day</span>
               <span className="text-center">Night</span>
             </div>
-            {[1, 2, 3, 4, 5, 6, 0].map((weekday) => {
-              const dayDisplay = getDefaultMatrixDisplay(weekday, 'Day');
-              const nightDisplay = getDefaultMatrixDisplay(weekday, 'Night');
+            {[1, 2, 3, 4, 5, 6, 0].map((weekday) => {const dayDisplay = getDefaultMatrixDisplay(weekday, 'Day');const nightDisplay = getDefaultMatrixDisplay(weekday, 'Night');
               return (
                 <div key={`default-${weekday}`} className="grid grid-cols-[1.6fr_1fr_1fr] px-3 py-2 text-sm">
                   <span className="text-slate-700">{WEEKDAY_LABELS[weekday]}</span>
                   <span className={`text-center font-semibold ${dayDisplay.className}`}>{dayDisplay.label}</span>
                   <span className={`text-center font-semibold ${nightDisplay.className}`}>{nightDisplay.label}</span>
-                </div>
-              );
+                </div>);
+
             })}
           </div>
         </div>
@@ -381,34 +381,34 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
           <Button size="sm" variant="outline" onClick={openDefaultsEditor}>Edit Defaults</Button>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
+
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold text-slate-900">Availability</h2>
-          <p className="text-sm text-slate-500">Manage company-level shift availability.</p>
+          <p className="text-slate-500 text-sm font-medium text-left">Select how many trucks you have available for each shift.</p>
         </div>
         <div className="flex items-center gap-2">
-          {VIEW_MODES.map((mode) => (
-            <Button key={mode} variant={viewMode === mode ? 'default' : 'outline'} size="sm" onClick={() => setViewMode(mode)}>
+          {VIEW_MODES.map((mode) =>
+          <Button key={mode} variant={viewMode === mode ? 'default' : 'outline'} size="sm" onClick={() => setViewMode(mode)}>
               {mode[0].toUpperCase() + mode.slice(1)}
             </Button>
-          ))}
+          )}
         </div>
       </div>
-      {canSelectCompany && (
-        <Card>
+      {canSelectCompany &&
+      <Card>
           <CardContent className="p-4 space-y-3">
             <div>
               <p className="text-xs text-slate-500 mb-1">Search companies</p>
               <Input
-                value={companySearch}
-                onChange={(e) => setCompanySearch(e.target.value)}
-                placeholder="Type a company name"
-              />
+              value={companySearch}
+              onChange={(e) => setCompanySearch(e.target.value)}
+              placeholder="Type a company name" />
+
             </div>
             <div>
               <p className="text-xs text-slate-500 mb-1">Company</p>
@@ -417,20 +417,20 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
                   <SelectValue placeholder="Select company" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredCompanies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>{company.name || company.id}</SelectItem>
-                  ))}
+                  {filteredCompanies.map((company) =>
+                <SelectItem key={company.id} value={company.id}>{company.name || company.id}</SelectItem>
+                )}
                 </SelectContent>
               </Select>
             </div>
           </CardContent>
         </Card>
-      )}
+      }
 
-      {!selectedCompanyId ? (
-        <Card><CardContent className="p-6 text-sm text-slate-500">Select a company to view availability.</CardContent></Card>
-      ) : (
-        <>
+      {!selectedCompanyId ?
+      <Card><CardContent className="p-6 text-sm text-slate-500">Select a company to view availability.</CardContent></Card> :
+
+      <>
           <Card data-tour="availability-controls">
             <CardContent className="p-3 space-y-3">
               <div className="text-center text-xs font-medium text-slate-600">{dateRangeLabel}</div>
@@ -456,7 +456,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
 
           {renderWeeklyDefaultsMatrix()}
         </>
-      )}
+      }
 
       <Dialog
         open={!!overrideEditingDate}
@@ -466,32 +466,32 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
             setDateOverrideForm(null);
             setFormError('');
           }
-        }}
-      >
+        }}>
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit day override</DialogTitle>
           </DialogHeader>
 
-          {overrideEditingDate && dateOverrideForm && (
-            <div className="space-y-4">
+          {overrideEditingDate && dateOverrideForm &&
+          <div className="space-y-4">
               <p className="text-sm text-slate-600">{format(overrideEditingDate, 'EEE, MMM d, yyyy')}</p>
 
               {['Day', 'Night'].map((shift) => {
-                const shiftState = dateOverrideForm[shift];
-                return (
-                  <div key={shift} className="space-y-2 rounded border border-slate-200 p-3">
+              const shiftState = dateOverrideForm[shift];
+              return (
+                <div key={shift} className="space-y-2 rounded border border-slate-200 p-3">
                     <p className="text-sm font-medium text-slate-700">{shift} Shift</p>
-                    {!shiftState.operational ? (
-                      <p className="text-xs text-slate-400">N/A (non-operational for this date)</p>
-                    ) : (
-                      <>
+                    {!shiftState.operational ?
+                  <p className="text-xs text-slate-400">N/A (non-operational for this date)</p> :
+
+                  <>
                         <div>
                           <p className="text-xs text-slate-500 mb-1">Status</p>
                           <Select
-                            value={shiftState.status}
-                            onValueChange={(value) => updateOverrideShiftField(shift, 'status', value)}
-                          >
+                        value={shiftState.status}
+                        onValueChange={(value) => updateOverrideShiftField(shift, 'status', value)}>
+
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value={STATUS_AVAILABLE}>Available</SelectItem>
@@ -500,33 +500,33 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
                           </Select>
                         </div>
 
-                        {shiftState.status === STATUS_AVAILABLE && (
-                          <div>
+                        {shiftState.status === STATUS_AVAILABLE &&
+                    <div>
                             <p className="text-xs text-slate-500 mb-1">Available Trucks (optional)</p>
                             <Input
-                              type="number"
-                              min="1"
-                              value={shiftState.count}
-                              onChange={(e) => updateOverrideShiftField(shift, 'count', e.target.value)}
-                              placeholder="Leave blank for general availability"
-                            />
+                        type="number"
+                        min="1"
+                        value={shiftState.count}
+                        onChange={(e) => updateOverrideShiftField(shift, 'count', e.target.value)}
+                        placeholder="Leave blank for general availability" />
+
                           </div>
-                        )}
+                    }
                       </>
-                    )}
-                  </div>
-                );
-              })}
+                  }
+                  </div>);
+
+            })}
 
               {formError && <p className="text-xs text-red-600">{formError}</p>}
 
               <div className="flex flex-wrap justify-end gap-2">
                 <Button variant="outline" onClick={() => clearDateOverrides(overrideEditingDate)}>Use Weekly Default</Button>
-                <Button variant="outline" onClick={() => { setOverrideEditingDate(null); setDateOverrideForm(null); setFormError(''); }}>Cancel</Button>
+                <Button variant="outline" onClick={() => {setOverrideEditingDate(null);setDateOverrideForm(null);setFormError('');}}>Cancel</Button>
                 <Button onClick={saveDateOverride}>Save</Button>
               </div>
             </div>
-          )}
+          }
         </DialogContent>
       </Dialog>
 
@@ -538,65 +538,65 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
             setDefaultsEditorForm(null);
             setFormError('');
           }
-        }}
-      >
+        }}>
+
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit weekly defaults</DialogTitle>
           </DialogHeader>
 
-          {defaultsEditorForm && (
-            <div className="space-y-4">
+          {defaultsEditorForm &&
+          <div className="space-y-4">
               <div className="divide-y divide-slate-200 rounded border border-slate-200">
                 <div className="grid grid-cols-[1.5fr_1fr_1fr] bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
                   <span>Weekday</span>
                   <span className="text-center">Day</span>
                   <span className="text-center">Night</span>
                 </div>
-                {[1, 2, 3, 4, 5, 6, 0].map((weekday) => (
-                  <div key={`edit-default-${weekday}`} className="grid grid-cols-[1.5fr_1fr_1fr] items-center px-3 py-2 text-sm">
+                {[1, 2, 3, 4, 5, 6, 0].map((weekday) =>
+              <div key={`edit-default-${weekday}`} className="grid grid-cols-[1.5fr_1fr_1fr] items-center px-3 py-2 text-sm">
                     <span className="text-slate-700">{WEEKDAY_LABELS[weekday]}</span>
                     {['Day', 'Night'].map((shift) => {
-                      const shiftState = defaultsEditorForm[weekday][shift];
-                      if (!shiftState.operational) {
-                        return <span key={`${weekday}-${shift}`} className="text-center text-xs text-slate-400">N/A</span>;
-                      }
+                  const shiftState = defaultsEditorForm[weekday][shift];
+                  if (!shiftState.operational) {
+                    return <span key={`${weekday}-${shift}`} className="text-center text-xs text-slate-400">N/A</span>;
+                  }
 
-                      return (
-                        <label key={`${weekday}-${shift}`} className="mx-auto flex items-center gap-2 text-xs text-slate-700">
+                  return (
+                    <label key={`${weekday}-${shift}`} className="mx-auto flex items-center gap-2 text-xs text-slate-700">
                           <Checkbox
-                            checked={shiftState.checked}
-                            onCheckedChange={(checked) => {
-                              setDefaultsEditorForm((prev) => ({
-                                ...prev,
-                                [weekday]: {
-                                  ...prev[weekday],
-                                  [shift]: {
-                                    ...prev[weekday][shift],
-                                    checked: !!checked,
-                                  },
-                                },
-                              }));
-                            }}
-                          />
+                        checked={shiftState.checked}
+                        onCheckedChange={(checked) => {
+                          setDefaultsEditorForm((prev) => ({
+                            ...prev,
+                            [weekday]: {
+                              ...prev[weekday],
+                              [shift]: {
+                                ...prev[weekday][shift],
+                                checked: !!checked
+                              }
+                            }
+                          }));
+                        }} />
+
                           {shift}
-                        </label>
-                      );
-                    })}
+                        </label>);
+
+                })}
                   </div>
-                ))}
+              )}
               </div>
 
               {formError && <p className="text-xs text-red-600">{formError}</p>}
 
               <div className="flex flex-wrap justify-end gap-2">
-                <Button variant="outline" onClick={() => { setDefaultsEditorOpen(false); setDefaultsEditorForm(null); setFormError(''); }}>Cancel</Button>
+                <Button variant="outline" onClick={() => {setDefaultsEditorOpen(false);setDefaultsEditorForm(null);setFormError('');}}>Cancel</Button>
                 <Button onClick={saveWeeklyDefaults}>Save</Button>
               </div>
             </div>
-          )}
+          }
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 }
