@@ -169,7 +169,7 @@ export default function Drivers() {
             <p className="text-sm leading-6 text-slate-700">
               A driver portal <span className="font-medium">ONLY</span> has the ability to view driver-specific announcements, dispatches that they are
               assigned to (normal dispatch details only), and have the ability to report incidents. They do not have the ability to view or see
-              ANYTHING else, including the confirmation logs, other drivers, or even other trucks assigned to the same dispatch.
+               <span className="font-medium">ANYTHING</span> else, including the confirmation logs, other drivers, or even other trucks assigned to the same dispatch.
             </p>
           </section>
 
@@ -177,7 +177,7 @@ export default function Drivers() {
             <h3 className="text-lg font-semibold text-slate-900">Assigning Drivers</h3>
             <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
               <li>
-                A driver can only see a dispatch and receive notifications if you assign them to a truck number on a
+                A driver can only see a dispatch and receive notifications if and when you assign them to a truck number on a
                 dispatch.
               </li>
               <li>
@@ -186,7 +186,10 @@ export default function Drivers() {
                 <span className="font-medium text-emerald-600">&ldquo;You have received a new dispatch&rdquo;</span>
               </li>
               <li>
-                Any changes made  <span className="font-medium">by the dispatcher</span> after they are assigned will also be received by the driver as long
+                Do not select a driver until you are ready to share the dispatch with them.
+                </li> 
+              <li>
+                Any changes made  <span className="font-medium">by the dispatcher</span> after a driver is assigned will also be received by the driver as long
                 as they remain assigned. ( <span className="text-amber-600">Amendments</span>,{' '}
                 <span className="text-red-600">Cancellations</span> )
               </li>
@@ -214,18 +217,31 @@ export default function Drivers() {
             </p>
             <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
               <li>
-                If you <span className="font-medium">switch trucks</span> that currently has a driver assigned, the
-                driver assignment will <span className="font-medium">RESET</span> and the driver will receive a <span className="text-red-600">cancellation.</span>
+                If you <span className="font-medium">switch a truck</span> that currently has a driver assigned, the
+                driver assignment will <span className="font-medium">RESET</span> and the driver will receive a <span className="text-red-600">cancellation</span> notification.
+                They will no longer be able to view the dispatch.
+              </li>
+              </ul>
+            <p className="pl-5 text-sm text-slate-500 italic leading-6">
+              Example: Truck 1 has Driver 1 assigned AND is switched to Truck 2 which is not dispatched:<br />
+              The driver assignment is RESET (driver removed), so Driver 1 will receive a cancellation
+              notification. Reassign them to Truck 2 to send them a new dispatch notification.
+            </p>
+            <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
+            <li>
+                If you <span className="font-medium">swap trucks</span> that currently have drivers assigned, the
+                driver assignments will <span className="font-medium">RESET</span> and the drivers will receive a <span className="text-red-600">cancellation</span> notification.
+                They will no longer be able to view the dispatches until you reassign them. When you reassign them, they will receive a new dispatch notification.
               </li>
             </ul>
             <p className="pl-5 text-sm text-slate-500 italic leading-6">
               Example: Truck 1 has Driver 1 assigned AND is switched to Truck 2 that has Driver 2 assigned:<br />
               Both trucks will have their drivers RESET (drivers removed), so both drivers will receive a cancellation
-              notification. Reassign them to send new dispatch.
+              notification. Reassign them to send the new dispatch.
             </p>
             <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
               <li>
-                Please make sure to <span className="font-medium">reassign</span> the drivers to the correct dispatch
+                Please make sure to double-check all the selections and changes you make, and that you <span className="font-medium">reassign</span> the drivers to the correct dispatch
                 if you <span className="font-medium">switch trucks</span>.
               </li>
             </ul>
@@ -238,6 +254,10 @@ export default function Drivers() {
                 If you <span className="font-medium">select a driver and do nothing else</span>, they will receive
                 notifications and dispatch updates the same way you receive them, except they will only receive the
                 ones pertaining to the dispatch they are <span className="font-medium">assigned</span> to.
+              </li>
+              <li>
+              What you see on your screen is exactly how things stand. If you have your driver selected to a dispatch, your driver can also see that dispatch. <br />
+              If you have <span className="font-medium">'No Driver Selected'</span> on your dispatch, then your driver cannot see that dispatch. 
               </li>
             </ul>
           </section>
