@@ -362,6 +362,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
         <div className="space-y-1 text-xs text-slate-500">
           <p className="text-red-500">(Example: I can work all day shifts + Mon/Wed/Fri night shifts) </p>
           <p>If you need off on a specific day when you are usually available (default), use the availability chart ABOVE to select Unavailable. </p>
+          <p>If you can work on a day when you are usually unavailable (default), use the availability chart ABOVE to select Available/Number of trucks. </p> 
         </div>
         <div className="overflow-x-auto">
           <div className="min-w-[320px] divide-y divide-slate-200 rounded border border-slate-200">
