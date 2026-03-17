@@ -28,6 +28,27 @@ const STATUS_ORDER = ['Scheduled', 'Dispatch', 'Amended', 'Cancelled'];
 const ACTIVE_LIVE_EXCLUDED_STATUSES = new Set(['Cancelled', 'Scheduled']);
 const LIVE_STATUS_OPTIONS = ['Running', 'Broken Down', 'Delayed', 'At Plant', 'Switched', 'Waiting', 'Off Route', 'Other'];
 
+const getLiveStatusClasses = (status) => {
+  switch (status) {
+    case 'Broken Down':
+      return 'border-rose-300 bg-rose-50 text-rose-700';
+    case 'Delayed':
+      return 'border-amber-300 bg-amber-50 text-amber-700';
+    case 'Waiting':
+      return 'border-sky-300 bg-sky-50 text-sky-700';
+    case 'At Plant':
+      return 'border-indigo-300 bg-indigo-50 text-indigo-700';
+    case 'Switched':
+      return 'border-violet-300 bg-violet-50 text-violet-700';
+    case 'Off Route':
+      return 'border-orange-300 bg-orange-50 text-orange-700';
+    case 'Other':
+      return 'border-fuchsia-300 bg-fuchsia-50 text-fuchsia-700';
+    default:
+      return 'border-slate-200 bg-white text-slate-700';
+  }
+};
+
 
 const getAdminDisplayName = (session) => {
   if (!session) return 'Admin';
@@ -362,44 +383,51 @@ function LiveDispatchBoard({
           <Card>
               <CardContent className="p-4 space-y-4">
                 {groupedShifts.map((shiftGroup) => (
-                  <div key={shiftGroup.shift} className="space-y-2">
-                    <div className="flex items-center gap-2 text-lg sm:text-xl font-bold text-slate-800 border-b border-slate-200 pb-2">
-                      {shiftGroup.shift === 'Day Shift' ? <Sun className="h-5 w-5 text-amber-500" /> : <Moon className="h-5 w-5 text-slate-500" />}
-                      {shiftGroup.shift}
+                  <section key={shiftGroup.shift} className="space-y-4">
+                    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-3 shadow-sm">
+                      <div className="flex items-center gap-2.5 text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+                        {shiftGroup.shift === 'Day Shift' ? <Sun className="h-5 w-5 text-amber-500" /> : <Moon className="h-5 w-5 text-slate-500" />}
+                        {shiftGroup.shift}
+                      </div>
+                      <Badge variant="secondary" className="text-xs font-medium text-slate-600">{shiftGroup.jobs.length} jobs</Badge>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       {shiftGroup.jobs.length === 0 && (
                         <p className="text-xs text-slate-400 px-1 py-1">No active jobs in this shift.</p>
                       )}
                       {shiftGroup.jobs.map((job) => (
-                        <div key={job.groupKey} className="rounded-lg border border-slate-200 bg-slate-50/70 p-3">
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">{job.clientName || 'Unknown Client'} • #{job.jobNumber || 'No Job #'}</p>
-                              <p className="text-xs text-slate-500">{job.shift}{job.startLocation ? ` • ${job.startLocation}` : ''} • {job.assignedCount}/{job.requestedCount} filled</p>
+                        <article key={job.groupKey} className="rounded-xl border border-slate-300 bg-slate-100/80 shadow-sm overflow-hidden">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-slate-300 bg-white/90 px-4 py-3.5">
+                            <div className="space-y-1">
+                              <p className="text-base font-bold text-slate-900 tracking-tight">{job.clientName || 'Unknown Client'} <span className="text-slate-500 font-semibold">• Job #{job.jobNumber || 'No Job #'}</span></p>
+                              <p className="text-xs text-slate-500">{job.shift}{job.startLocation ? ` • ${job.startLocation}` : ''}</p>
+                              <p className="text-xs font-medium text-slate-600">Filled {job.assignedCount} of {job.requestedCount} requested slots</p>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={requestUpdatingKey===`${job.groupKey}:down`} onClick={() => onAdjustRequestedCount(job, -1)}>- Slot</Button>
-                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" disabled={requestUpdatingKey===`${job.groupKey}:up`} onClick={() => onAdjustRequestedCount(job, 1)}>+ Slot</Button>
+                            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs bg-white" disabled={requestUpdatingKey===`${job.groupKey}:down`} onClick={() => onAdjustRequestedCount(job, -1)}>- Slot</Button>
+                              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs bg-white" disabled={requestUpdatingKey===`${job.groupKey}:up`} onClick={() => onAdjustRequestedCount(job, 1)}>+ Slot</Button>
                             </div>
                           </div>
-                          <div className="space-y-2">
+                          <div className="space-y-2.5 p-3.5">
                             {job.lines.map((line) => (
-                              <div key={line.lineKey} className={`rounded-md border px-3 py-2 ${line.isPlaceholder ? 'border-dashed border-slate-300 bg-white/60' : 'border-slate-200 bg-white'}`}>
+                              <div key={line.lineKey} className={`rounded-lg border px-3.5 py-3 ${line.isPlaceholder ? 'border-dashed border-slate-300 bg-slate-50' : 'border-slate-200 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]'}`}>
                                 {line.isPlaceholder ? (
-                                  <div className="flex items-center justify-between">
-                                    <p className="text-xs font-medium text-slate-500">Requested Truck Slot • Unassigned</p>
-                                    <Badge variant="outline" className="text-[10px] border-dashed">Open Slot</Badge>
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Requested Truck Slot</p>
+                                      <p className="text-xs text-slate-400">Unfilled placeholder</p>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px] border-dashed border-slate-400 bg-white text-slate-600">Open Slot</Badge>
                                   </div>
                                 ) : (
-                                  <div className="space-y-1.5">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                      <button type="button" className="text-left" onClick={() => onOpenDispatch(line.dispatch)}>
-                                        <p className="text-sm font-semibold text-slate-900">Truck {line.truckNumber || 'Unassigned'} {line.driverName ? `• ${line.driverName}` : ''}</p>
+                                  <div className="space-y-2">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                      <button type="button" className="text-left space-y-1" onClick={() => onOpenDispatch(line.dispatch)}>
+                                        <p className="text-sm font-bold text-slate-900">Truck {line.truckNumber || 'Unassigned'} {line.driverName ? `• ${line.driverName}` : ''}</p>
                                         <p className="text-xs text-slate-500">Start {line.startTime || 'TBD'} • {line.dispatch.status}</p>
                                       </button>
                                       <Select value={line.liveStatus} onValueChange={(value) => onChangeLiveStatus(line, value)}>
-                                        <SelectTrigger className="h-8 w-[150px] text-xs">
+                                        <SelectTrigger className={`h-9 w-[170px] text-xs font-medium rounded-full border transition-colors ${getLiveStatusClasses(line.liveStatus)}`}>
                                           <SelectValue placeholder="Live status" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -409,7 +437,7 @@ function LiveDispatchBoard({
                                     </div>
                                     {statusUpdatingKey === line.statusKey && <p className="text-[10px] text-slate-400">Saving status...</p>}
                                     {line.additionalAssignments.length > 0 && (
-                                      <div className="pl-2 border-l-2 border-indigo-200 space-y-1">
+                                      <div className="pl-2.5 border-l-2 border-indigo-200 space-y-1">
                                         {line.additionalAssignments.map((assignment) => (
                                           <p key={assignment.lineKey} className="text-xs text-indigo-700">
                                             Additional assignment: Job #{assignment.jobNumber || 'No Job #'} • {assignment.startTime || 'TBD'}
@@ -422,10 +450,10 @@ function LiveDispatchBoard({
                               </div>
                             ))}
                           </div>
-                        </div>
+                        </article>
                       ))}
                     </div>
-                  </div>
+                  </section>
                 ))}
               </CardContent>
             </Card>
