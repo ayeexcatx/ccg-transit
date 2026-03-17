@@ -28,6 +28,38 @@ const STATUS_ORDER = ['Scheduled', 'Dispatch', 'Amended', 'Cancelled'];
 const ACTIVE_LIVE_EXCLUDED_STATUSES = new Set(['Cancelled', 'Scheduled']);
 const LIVE_STATUS_OPTIONS = ['Running', 'Broken Down', 'Delayed', 'At Plant', 'Switched', 'Waiting', 'Off Route', 'Other'];
 
+
+const DAY_SHIFT_JOB_ACCENTS = [
+  { accent: '#0ea5e9', rowTint: 'rgba(14, 165, 233, 0.07)' },
+  { accent: '#14b8a6', rowTint: 'rgba(20, 184, 166, 0.07)' },
+  { accent: '#22c55e', rowTint: 'rgba(34, 197, 94, 0.07)' },
+  { accent: '#f59e0b', rowTint: 'rgba(245, 158, 11, 0.07)' },
+  { accent: '#f97316', rowTint: 'rgba(249, 115, 22, 0.07)' },
+  { accent: '#a855f7', rowTint: 'rgba(168, 85, 247, 0.07)' },
+  { accent: '#6366f1', rowTint: 'rgba(99, 102, 241, 0.07)' },
+  { accent: '#ec4899', rowTint: 'rgba(236, 72, 153, 0.07)' },
+  { accent: '#84cc16', rowTint: 'rgba(132, 204, 22, 0.07)' },
+  { accent: '#06b6d4', rowTint: 'rgba(6, 182, 212, 0.07)' }
+];
+
+const NIGHT_SHIFT_JOB_ACCENTS = [
+  { accent: '#0369a1', rowTint: 'rgba(3, 105, 161, 0.12)' },
+  { accent: '#0f766e', rowTint: 'rgba(15, 118, 110, 0.12)' },
+  { accent: '#166534', rowTint: 'rgba(22, 101, 52, 0.12)' },
+  { accent: '#b45309', rowTint: 'rgba(180, 83, 9, 0.12)' },
+  { accent: '#9a3412', rowTint: 'rgba(154, 52, 18, 0.12)' },
+  { accent: '#6d28d9', rowTint: 'rgba(109, 40, 217, 0.12)' },
+  { accent: '#3730a3', rowTint: 'rgba(55, 48, 163, 0.12)' },
+  { accent: '#be185d', rowTint: 'rgba(190, 24, 93, 0.12)' },
+  { accent: '#4d7c0f', rowTint: 'rgba(77, 124, 15, 0.12)' },
+  { accent: '#155e75', rowTint: 'rgba(21, 94, 117, 0.12)' }
+];
+
+const getJobAccentByShift = (shift, index) => {
+  const palette = shift === 'Night Shift' ? NIGHT_SHIFT_JOB_ACCENTS : DAY_SHIFT_JOB_ACCENTS;
+  return palette[index % palette.length];
+};
+
 const getLiveStatusClasses = (status) => {
   switch (status) {
     case 'Broken Down':
@@ -395,13 +427,17 @@ function LiveDispatchBoard({
                       {shiftGroup.jobs.length === 0 && (
                         <p className="text-xs text-slate-400 px-1 py-1">No active jobs in this shift.</p>
                       )}
-                      {shiftGroup.jobs.map((job) => (
+                      {shiftGroup.jobs.map((job, jobIndex) => {
+                        const jobAccent = getJobAccentByShift(shiftGroup.shift, jobIndex);
+
+                        return (
                         <article key={job.groupKey} className="rounded-xl border border-slate-300 bg-slate-100/80 shadow-sm overflow-hidden">
+                          <div className="h-1.5" style={{ backgroundColor: jobAccent.accent }} />
                           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-slate-300 bg-white/90 px-4 py-3.5">
                             <div className="space-y-1">
                               <p className="text-base font-bold text-slate-900 tracking-tight">{job.clientName || 'Unknown Client'} <span className="text-slate-500 font-semibold">• Job #{job.jobNumber || 'No Job #'}</span></p>
                               <p className="text-xs text-slate-500">{job.shift}{job.startLocation ? ` • ${job.startLocation}` : ''}</p>
-                              <p className="text-xs font-medium text-slate-600">Filled {job.assignedCount} of {job.requestedCount} requested slots</p>
+                              <p className="text-xs font-medium" style={{ color: jobAccent.accent }}>Filled {job.assignedCount} of {job.requestedCount} requested slots</p>
                             </div>
                             <div className="flex items-center gap-1.5 self-start sm:self-auto">
                               <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs bg-white" disabled={requestUpdatingKey===`${job.groupKey}:down`} onClick={() => onAdjustRequestedCount(job, -1)}>- Slot</Button>
@@ -410,7 +446,7 @@ function LiveDispatchBoard({
                           </div>
                           <div className="space-y-2.5 p-3.5">
                             {job.lines.map((line) => (
-                              <div key={line.lineKey} className={`rounded-lg border px-3.5 py-3 ${line.isPlaceholder ? 'border-dashed border-slate-300 bg-slate-50' : 'border-slate-200 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]'}`}>
+                              <div key={line.lineKey} className={`rounded-lg border px-3.5 py-3 ${line.isPlaceholder ? 'border-dashed border-slate-300 bg-slate-50' : 'border-slate-200 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]'}`} style={line.isPlaceholder ? undefined : { borderLeftWidth: '4px', borderLeftColor: jobAccent.accent, backgroundColor: jobAccent.rowTint }}>
                                 {line.isPlaceholder ? (
                                   <div className="flex items-center justify-between gap-2">
                                     <div>
@@ -451,7 +487,8 @@ function LiveDispatchBoard({
                             ))}
                           </div>
                         </article>
-                      ))}
+                      );
+                      })}
                     </div>
                   </section>
                 ))}
