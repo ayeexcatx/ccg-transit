@@ -22,6 +22,7 @@ type ProviderConfig = {
   authToken: string;
   spaceUrl: string;
   fromPhone: string;
+  statusCallbackUrl: string;
   configured: boolean;
 };
 
@@ -39,11 +40,9 @@ function readPayload(body: unknown): SmsPayload {
   return body as SmsPayload;
 }
 
-
 function maskPhone(value: string): string {
   const normalized = String(value || '').trim();
   if (!normalized) return '';
-
   return `***${normalized.slice(-4)}`;
 }
 
@@ -56,17 +55,25 @@ function normalizeSpaceUrl(value: string): string {
   return `https://${trimmed.replace(/\/+$/, '')}`;
 }
 
+function normalizeUrl(value: string): string {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+  return trimmed.replace(/\/+$/, '');
+}
+
 function getProviderConfig(): ProviderConfig {
   const projectId = String(Deno.env.get('SIGNALWIRE_PROJECT_ID') || '').trim();
   const authToken = String(Deno.env.get('SIGNALWIRE_AUTH_TOKEN') || '').trim();
   const spaceUrl = normalizeSpaceUrl(String(Deno.env.get('SIGNALWIRE_SPACE_URL') || ''));
   const fromPhone = String(Deno.env.get('SIGNALWIRE_FROM_PHONE') || '').trim();
+  const statusCallbackUrl = normalizeUrl(String(Deno.env.get('SIGNALWIRE_SMS_STATUS_CALLBACK_URL') || ''));
 
   return {
     projectId,
     authToken,
     spaceUrl,
     fromPhone,
+    statusCallbackUrl,
     configured: Boolean(projectId && authToken && spaceUrl && fromPhone),
   };
 }
@@ -103,7 +110,6 @@ Deno.serve(async (req: Request) => {
     });
 
     if (!phone) {
-      console.log('sendNotificationSms failure reason', { reason: 'invalid_input', error: 'phone is required' });
       return Response.json<SmsResult>({
         ok: false,
         provider: 'signalwire',
@@ -115,7 +121,6 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!message) {
-      console.log('sendNotificationSms failure reason', { reason: 'invalid_input', error: 'message is required' });
       return Response.json<SmsResult>({
         ok: false,
         provider: 'signalwire',
@@ -134,10 +139,10 @@ Deno.serve(async (req: Request) => {
       hasAuthToken: Boolean(config.authToken),
       hasSpaceUrl: Boolean(config.spaceUrl),
       hasFromPhone: Boolean(config.fromPhone),
+      hasStatusCallbackUrl: Boolean(config.statusCallbackUrl),
     });
 
     if (!config.configured) {
-      console.log('sendNotificationSms failure reason', { reason: 'provider_not_configured' });
       return Response.json<SmsResult>({
         ok: false,
         provider: 'signalwire',
@@ -157,10 +162,15 @@ Deno.serve(async (req: Request) => {
       Body: message,
     });
 
+    if (config.statusCallbackUrl) {
+      body.set('StatusCallback', config.statusCallbackUrl);
+    }
+
     console.log('sendNotificationSms request about to be sent to SignalWire', {
       url,
       toPhoneMasked: maskPhone(phone),
       fromPhoneMasked: maskPhone(config.fromPhone),
+      hasStatusCallbackUrl: Boolean(config.statusCallbackUrl),
       messageLength: message.length,
     });
 
@@ -173,11 +183,6 @@ Deno.serve(async (req: Request) => {
       body,
     });
 
-    console.log('sendNotificationSms SignalWire response status', {
-      status: providerResponse.status,
-      ok: providerResponse.ok,
-    });
-
     const responseText = await providerResponse.text();
     let responseJson: SignalWireMessageResponse | null = null;
 
@@ -187,17 +192,8 @@ Deno.serve(async (req: Request) => {
       responseJson = null;
     }
 
-    console.log('sendNotificationSms parsed response body', {
-      responseJson,
-      responseText,
-    });
-
     if (!providerResponse.ok) {
       const failureReason = extractErrorMessage(responseJson, responseText);
-      console.log('sendNotificationSms failure reason', {
-        reason: 'provider_api_error',
-        error: failureReason,
-      });
 
       return Response.json<SmsResult>({
         ok: false,
@@ -208,11 +204,6 @@ Deno.serve(async (req: Request) => {
         error: failureReason,
       }, { status: 200 });
     }
-
-    console.log('sendNotificationSms success', {
-      providerMessageId: responseJson?.sid || null,
-      sentAt: responseJson?.date_created || null,
-    });
 
     return Response.json<SmsResult>({
       ok: true,
