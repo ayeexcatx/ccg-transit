@@ -17,3 +17,13 @@ export const scheduledStatusMessage = 'Your truck has been scheduled, details wi
 
 export const scheduledDispatchNote =
   'Note: The assignment is subject to cancellation by the customer. Your acknowledgement constitutes acceptance of the assignment and a commitment to perform as scheduled.';
+
+export const COMPANY_OWNER_ASSIGNMENT_SECTION_STATUSES = new Set([
+  'Dispatch',
+  'Amended',
+  'Cancelled',
+]);
+
+export function canCompanyOwnerViewAssignmentsAndTimeLogs(status) {
+  return COMPANY_OWNER_ASSIGNMENT_SECTION_STATUSES.has(String(status || '').trim());
+}
