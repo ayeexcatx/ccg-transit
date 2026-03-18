@@ -6,6 +6,7 @@ export default function DispatchTimeLogSection({
   isOwner,
   isDriverUser,
   isAdmin,
+  showOwnerAssignmentsAndTimeLogs,
   dispatchStatus,
   myTrucks,
   visibleTrucks,
@@ -24,7 +25,7 @@ export default function DispatchTimeLogSection({
 }) {
   return (
     <>
-      {isOwner && myTrucks.length > 0 && dispatchStatus !== 'Cancelled' && (
+      {isOwner && showOwnerAssignmentsAndTimeLogs && myTrucks.length > 0 && dispatchStatus !== 'Cancelled' && (
         <div id="time-log-section" ref={timeLogSectionRef} data-tour="dispatch-time-log">
           <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Time Log</p>
           <div className="space-y-2">

@@ -12,7 +12,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { statusBadgeColors, scheduledDispatchNote, scheduledStatusMessage } from './statusConfig';
+import {
+  canCompanyOwnerViewAssignmentsAndTimeLogs,
+  statusBadgeColors,
+  scheduledDispatchNote,
+  scheduledStatusMessage,
+} from './statusConfig';
 import { NOTE_DISPLAY_WIDTH, NOTE_TYPES, normalizeTemplateNote, renderSimpleMarkupToHtml } from '@/lib/templateNotes';
 import { calculateWorkedHours, formatTime24h, formatWorkedHours } from '@/lib/timeLogs';
 import { toast } from 'sonner';
@@ -738,6 +743,7 @@ export default function DispatchDetailDrawer({
 
 
   const ownerTruckOptions = session?.code_type === 'CompanyOwner' ? (session?.allowed_trucks || []) : [];
+  const showOwnerAssignmentsAndTimeLogs = !isOwner || canCompanyOwnerViewAssignmentsAndTimeLogs(dispatch.status);
   const requiredTruckCount = (dispatch?.trucks_assigned || []).filter(Boolean).length;
 
   const resetDraftTrucksToCurrentDispatch = () => {
@@ -1330,6 +1336,7 @@ export default function DispatchDetailDrawer({
               <DispatchDriverConfirmationSection
                 isOwner={isOwner}
                 isAdmin={isAdmin}
+                showOwnerAssignmentsAndTimeLogs={showOwnerAssignmentsAndTimeLogs}
                 myTrucks={myTrucks}
                 currentConfType={currentConfType}
                 isTruckConfirmedForCurrent={isTruckConfirmedForCurrent}
@@ -1353,6 +1360,7 @@ export default function DispatchDetailDrawer({
                 isOwner={isOwner}
                 isDriverUser={isDriverUser}
                 isAdmin={isAdmin}
+                showOwnerAssignmentsAndTimeLogs={showOwnerAssignmentsAndTimeLogs}
                 dispatchStatus={dispatch.status}
                 myTrucks={myTrucks}
                 visibleTrucks={visibleTrucks}

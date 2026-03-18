@@ -8,6 +8,7 @@ import DispatchDriverAssignmentsSection from './DispatchDriverAssignmentsSection
 export default function DispatchDriverConfirmationSection({
   isOwner,
   isAdmin,
+  showOwnerAssignmentsAndTimeLogs,
   myTrucks,
   currentConfType,
   isTruckConfirmedForCurrent,
@@ -41,7 +42,7 @@ export default function DispatchDriverConfirmationSection({
         />
       )}
 
-      {isOwner && (dispatch.trucks_assigned || []).length > 0 && (
+      {isOwner && showOwnerAssignmentsAndTimeLogs && (dispatch.trucks_assigned || []).length > 0 && (
         <DispatchDriverAssignmentsSection
           eligibleDrivers={eligibleDrivers}
           trucksAssigned={dispatch.trucks_assigned || []}
