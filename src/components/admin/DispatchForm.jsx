@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Copy, Plus, Trash2 } from 'lucide-react';
-import { toast } from "@/components/ui/use-toast";
 import {
   notifyDispatchChange,
   notifyDispatchInformationalUpdate,
@@ -29,6 +28,8 @@ export default function DispatchForm({ dispatch, dispatches = [], companies, acc
   const [updateMessage, setUpdateMessage] = useState('');
   const [pendingFinalForm, setPendingFinalForm] = useState(null);
   const [showCopyPicker, setShowCopyPicker] = useState(false);
+  const [showRequiredFieldsDialog, setShowRequiredFieldsDialog] = useState(false);
+  const [requiredFieldsMessage, setRequiredFieldsMessage] = useState('');
   const [copySearch, setCopySearch] = useState('');
   const [copySourceSummary, setCopySourceSummary] = useState('');
   const [copyTargetAssignmentIndex, setCopyTargetAssignmentIndex] = useState(null);
@@ -346,10 +347,8 @@ export default function DispatchForm({ dispatch, dispatches = [], companies, acc
   const handleSubmit = async () => {
     const missingFields = validateRequiredFields();
     if (missingFields.length > 0) {
-      toast({
-        variant: 'destructive',
-        description: `Please complete the required fields: ${missingFields.join(', ')}`
-      });
+      setRequiredFieldsMessage(`Please complete the required fields: ${missingFields.join(', ')}`);
+      setShowRequiredFieldsDialog(true);
       return;
     }
 
@@ -645,6 +644,23 @@ export default function DispatchForm({ dispatch, dispatches = [], companies, acc
           {saving ? 'Saving...' : dispatch ? 'Update Dispatch' : 'Create Dispatch'}
         </Button>
       </div>
+
+      <Dialog open={showRequiredFieldsDialog} onOpenChange={setShowRequiredFieldsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Required fields missing</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-700">{requiredFieldsMessage}</p>
+          <div className="pt-2">
+            <Button
+              className="w-full bg-slate-900 hover:bg-slate-800"
+              onClick={() => setShowRequiredFieldsDialog(false)}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showUpdateNotifyChoice} onOpenChange={setShowUpdateNotifyChoice}>
         <DialogContent className="sm:max-w-md">
