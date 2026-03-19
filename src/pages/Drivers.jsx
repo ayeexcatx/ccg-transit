@@ -260,7 +260,7 @@ export default function Drivers() {
                   </li>
                   <li>
                     When you <span className="font-medium">select a driver</span> on a dispatch, a copy of the dispatch and a notification will be sent to the
-                    driver. <span className="font-medium text-emerald-600">“You have received a new dispatch”</span>
+                    driver. <span className="font-medium text-emerald-600">“Dispatch Assigned: You have been assigned to a dispatch”</span>
                   </li>
                   <li>
                     Do not select a driver <span className="font-medium">until</span> you are ready to share the dispatch with them.
@@ -271,7 +271,7 @@ export default function Drivers() {
                   </li>
                   <li>
                     If you <span className="font-medium">remove a driver</span> from the dispatch assignment, they will immediately receive a
-                    <span className="font-medium text-red-600"> cancellation</span> notification.
+                    <span className="font-medium text-red-600"> No Longer Available</span> notification.
                   </li>
                 </ul>
               </section>
@@ -281,37 +281,40 @@ export default function Drivers() {
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
                     If you have a driver assigned and you <span className="font-medium">switch the driver</span> in the dropdown menu, the driver you removed will immediately receive a
-                    <span className="text-red-600"> cancellation</span> notification, and the driver you added will immediately receive a <span className="text-emerald-600">new dispatch</span> notification.
+                    <span className="text-red-600"> No Longer Available</span> notification, and the driver you added will immediately receive a <span className="text-emerald-600">new "Dispatch Assigned"</span> notification.
                   </li>
                 </ul>
                 <p className="pl-5 text-sm text-slate-500 italic leading-6">
                   Example: Switch Driver 1 to Driver 2<br />
-                  Driver 1 = cancellation notification<br />
-                  Driver 2 = new dispatch notification
+                  Driver 1 = "Dispatch Removed: This dispatch assignment is no longer available" notification<br />
+                  Driver 2 = "Dispatch Assigned: You have been assigned to a dispatch" notification
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
-                    If you <span className="font-medium">switch a truck</span> that currently has a driver assigned, the driver assignment will <span className="font-medium">RESET</span> and the driver will receive a <span className="text-red-600">cancellation</span> notification.
+                    If you <span className="font-medium">switch a truck</span> that currently has a driver assigned, the driver assignment will <span className="font-medium">RESET</span> and the driver will receive a <span className="text-red-600">No Longer Available</span> notification.
                     They will no longer be able to view the dispatch.
                   </li>
                 </ul>
                 <p className="pl-5 text-sm text-slate-500 italic leading-6">
                   Example: Truck 1 (which has Driver 1 assigned) is switched to Truck 2 which is not dispatched:<br />
-                  The driver assignment is RESET (driver removed), so Driver 1 will receive a cancellation notification. Reassign them to Truck 2 to send them a new dispatch notification, or choose a new driver to send the new dispatch to them.
+                  The driver assignment is RESET (driver removed), so Driver 1 will receive a "No Longer Available" notification. Reassign them to Truck 2 to send them a new dispatch assignment notification, or choose a new driver to send the new dispatch assignment to them.
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
-                    If you <span className="font-medium">swap trucks</span> that currently have drivers assigned, the driver assignments will <span className="font-medium">RESET</span> and the drivers will both receive a <span className="text-red-600">cancellation</span> notification.
-                    They will no longer be able to view the dispatches until you reassign them. When you reassign them, they will receive a new dispatch notification.
+                    If you <span className="font-medium">swap trucks</span> that currently have drivers assigned, the driver assignments will <span className="font-medium">RESET</span> and the drivers will both receive a <span className="text-red-600">No Longer Available</span> notification.
+                    They will no longer be able to view the dispatches until you reassign them. When you reassign them, they will receive a new dispatch assignment notification.
                   </li>
                 </ul>
                 <p className="pl-5 text-sm text-slate-500 italic leading-6">
                   Example: Truck 1 has Driver 1 assigned AND is switched to Truck 2 that has Driver 2 assigned:<br />
-                  Both trucks will have their drivers RESET (drivers removed), so both drivers will receive a cancellation notification. Reassign them to send the new dispatch.
+                  Both trucks will have their drivers RESET (drivers removed), so both drivers will receive a "No Longer Available" notification. Reassign them to send the new dispatch assignment.
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
                     Please make sure to double-check all the selections and changes you make, and that you <span className="font-medium">reassign</span> the drivers to the correct dispatch if you <span className="font-medium">switch trucks</span>.
+                  </li>
+                  <li>
+                   It is still your responsibility to follow up with your drivers to get verbal or written confirmation that they have the correct dispatch and that they understand the assignment.
                   </li>
                 </ul>
               </section>
@@ -323,7 +326,7 @@ export default function Drivers() {
                     If you <span className="font-medium">select a driver and do nothing else</span>, they will receive notifications and dispatch updates the same way you receive them, except they will only receive the ones pertaining to the dispatch they are <span className="font-medium">assigned</span> to.
                   </li>
                   <li>
-                    What you see on your screen is exactly how things stand. If you have your driver selected to a dispatch, your driver can also see that dispatch. <br />
+                    What you see on your screen is exactly how things stand. If you have a driver selected to a dispatch, your driver can also see that dispatch. <br />
                     If you have <span className="font-medium">'No Driver Selected'</span> on your dispatch, then your driver cannot see that dispatch.
                   </li>
                 </ul>
@@ -347,7 +350,7 @@ export default function Drivers() {
                     Um motorista só consegue ver um despacho e receber notificações <span className="font-medium">SE</span> e <span className="font-medium">QUANDO</span> for atribuído a um número de camião num despacho.
                   </li>
                   <li>
-                    Ao <span className="font-medium">selecionar um motorista</span> num despacho, será enviada uma cópia do despacho e uma notificação ao motorista: <span className="font-medium text-emerald-600">“Recebeu um novo despacho”</span>
+                    Ao <span className="font-medium">selecionar um motorista</span> num despacho, será enviada uma cópia do despacho e uma notificação ao motorista: <span className="font-medium text-emerald-600">“Você foi designado para um despacho”</span>
                   </li>
                   <li>
                     Não selecione um motorista <span className="font-medium">até</span> estar pronto para partilhar o despacho com ele.
@@ -357,7 +360,7 @@ export default function Drivers() {
                     (<span className="text-amber-600">alterações</span>, <span className="text-red-600">cancelamentos</span>)
                   </li>
                   <li>
-                    Se <span className="font-medium">remover um motorista</span> da atribuição do despacho, ele receberá imediatamente uma notificação de <span className="font-medium text-red-600">cancelamento</span>.
+                    Se <span className="font-medium">remover um motorista</span> da atribuição do despacho, ele receberá imediatamente uma notificação de <span className="font-medium text-red-600">"A atribuição do despacho não está mais disponível"</span>.
                   </li>
                 </ul>
               </section>
@@ -366,39 +369,42 @@ export default function Drivers() {
                 <h3 className="text-lg font-semibold text-slate-900">Alterar Motoristas / Camiões</h3>
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
-                    Se tiver um motorista atribuído e o trocar no menu suspenso, o motorista removido receberá imediatamente uma notificação de <span className="text-red-600">cancelamento</span>, e o novo motorista receberá uma notificação de <span className="text-emerald-600">novo despacho</span>.
+                    Se tiver um motorista atribuído e o trocar no menu suspenso, o motorista removido receberá imediatamente uma notificação de <span className="text-red-600">"A atribuição do despacho não está mais disponível"</span>, e o novo motorista receberá uma notificação de <span className="text-emerald-600">"Despacho atribuído: Você foi designado para um despacho."</span>.
                   </li>
                 </ul>
                 <p className="pl-5 text-sm text-slate-500 italic leading-6">
                   Exemplo: Trocar Motorista 1 por Motorista 2<br />
-                  Motorista 1 = notificação de <span className="text-red-600">cancelamento</span><br />
-                  Motorista 2 = notificação de <span className="text-emerald-600">novo despacho</span>
+                  Motorista 1 = notificação de <span className="text-red-600">"A atribuição do despacho não está mais disponível"</span><br />
+                  Motorista 2 = notificação de <span className="text-emerald-600">"Você foi designado para um despacho"</span>
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
-                    Se alterar um camião que já tem um motorista atribuído, a atribuição será <span className="font-medium">REINICIADA</span> e o motorista receberá uma notificação de <span className="text-red-600">cancelamento</span>. Deixará de conseguir ver o despacho.
+                    Se alterar um camião que já tem um motorista atribuído, a atribuição será <span className="font-medium">REINICIADA</span> e o motorista receberá uma notificação de <span className="text-red-600">"A atribuição do despacho não está mais disponível"</span>. Deixará de conseguir ver o despacho.
                   </li>
                 </ul>
                 <p className="pl-5 text-sm text-slate-500 italic leading-6">
                   Exemplo:<br />
                   Camião 1 (com Motorista 1 atribuído) é alterado para Camião 2 (sem despacho):<br />
-                  A atribuição é <span className="font-medium">REINICIADA</span> (motorista removido), pelo que o Motorista 1 receberá uma notificação de <span className="text-red-600">cancelamento</span>.<br />
-                  Reatribua-o ao Camião 2 para enviar uma nova notificação de <span className="text-emerald-600">despacho</span>, ou selecione outro motorista.
+                  A atribuição é <span className="font-medium">REINICIADA</span> (motorista removido), pelo que o Motorista 1 receberá uma notificação de <span className="text-red-600">"A atribuição do despacho não está mais disponível"</span>.<br />
+                  Reatribua-o ao Camião 2 para enviar uma nova notificação de <span className="text-emerald-600">"Você foi designado para um despacho"</span>, ou selecione outro motorista.
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
-                    Se trocar camiões que já têm motoristas atribuídos, ambas as atribuições serão <span className="font-medium">REINICIADAS</span> e ambos os motoristas receberão uma notificação de <span className="text-red-600">cancelamento</span>. Deixarão de conseguir ver os despachos até serem novamente atribuídos.
+                    Se trocar camiões que já têm motoristas atribuídos, ambas as atribuições serão <span className="font-medium">REINICIADAS</span> e ambos os motoristas receberão uma notificação de <span className="text-red-600">"A atribuição do despacho não está mais disponível"</span>. Deixarão de conseguir ver os despachos até serem novamente atribuídos.
                   </li>
                 </ul>
                 <p className="pl-5 text-sm text-slate-500 italic leading-6">
                   Exemplo:<br />
                   Camião 1 com Motorista 1 é trocado com Camião 2 com Motorista 2:<br />
-                  Ambos os camiões terão os motoristas removidos, e ambos receberão uma notificação de <span className="text-red-600">cancelamento</span>.<br />
-                  Reatribua-os para enviar novos <span className="text-emerald-600">despachos</span>.
+                  Ambos os camiões terão os motoristas removidos, e ambos receberão uma notificação de <span className="text-red-600">"A atribuição do despacho não está mais disponível"</span>.<br />
+                  Reatribua-os para enviar novos <span className="text-emerald-600">"Você foi designado para um despacho"</span>.
                 </p>
                 <ul className="list-disc pl-5 space-y-2 text-sm leading-6 text-slate-700">
                   <li>
                     Por favor, verifique sempre cuidadosamente todas as seleções e alterações efetuadas e confirme que os motoristas estão atribuídos ao despacho correto após qualquer troca de camiões.
+                  </li>
+                  <li>
+                   Ainda é sua responsabilidade entrar em contato com seus motoristas para confirmar, verbalmente ou por escrito, que eles receberam o despacho correto e entenderam a tarefa.
                   </li>
                 </ul>
               </section>
