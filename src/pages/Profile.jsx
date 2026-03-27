@@ -183,11 +183,7 @@ function AdminProfile({ session }) {
       }
 
       if (nameChanged) {
-        const namePayload = {
-          full_name: trimmedName || null,
-          display_name: trimmedName || null,
-          name: trimmedName || null,
-        };
+        const namePayload = { full_name: trimmedName || null };
         await base44.auth.updateMe(namePayload);
       }
 
@@ -307,7 +303,8 @@ function AdminProfile({ session }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="admin-phone">Phone number</Label>
-              <Input id="admin-phone" value={form.sms_phone} readOnly placeholder="Manage on the SMS card below" />
+              <Input id="admin-phone" value={form.sms_phone} readOnly aria-readonly="true" placeholder="Managed in shared SMS settings on this page" />
+              <p className="text-xs text-slate-500">Read-only in this modal. Edit shared admin SMS phone in the “Your SMS Notifications” section on the Profile page.</p>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

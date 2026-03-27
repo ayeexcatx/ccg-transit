@@ -3,6 +3,16 @@ export function resolveProfileName(user) {
     user?.full_name,
     user?.display_name,
     user?.name,
+    user?.user_metadata?.full_name,
+    user?.user_metadata?.display_name,
+    user?.user_metadata?.name,
+    user?.raw_user_meta_data?.full_name,
+    user?.raw_user_meta_data?.display_name,
+    user?.raw_user_meta_data?.name,
+    user?.given_name && user?.family_name ? `${user.given_name} ${user.family_name}` : null,
+    user?.user_metadata?.given_name && user?.user_metadata?.family_name
+      ? `${user.user_metadata.given_name} ${user.user_metadata.family_name}`
+      : null,
   ];
 
   const resolved = candidates.find((value) => String(value || '').trim());
