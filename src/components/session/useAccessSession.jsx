@@ -155,7 +155,7 @@ async function resolveLinkedIdentityAccessCode(linkedIdentity) {
   if (!SUPPORTED_CODE_TYPES.has(codeType)) return null;
 
   if (codeType === 'Admin') {
-    const adminCodes = await base44.entities.AccessCode.filter({ code_type: 'Admin', active_flag: true }, '-created_date', 20);
+    const adminCodes = await base44.entities.AccessCode.filter({ code_type: 'Admin' }, '-created_date', 20);
     return (adminCodes || []).find((accessCode) => isActiveSupportedCode(accessCode)) || null;
   }
 
@@ -294,12 +294,15 @@ export function useAccessSession() {
 
       try {
         if (isAuthenticated) {
-          restoredAccessCode = await resolveLinkedIdentityAccessCode(currentAppIdentity);
-          if (!restoredAccessCode && storedId) {
+          if (storedId) {
             const storedAccessCode = await resolveStoredAccessCodeById(storedId);
             if (isAccessCodeCompatibleWithLinkedIdentity(storedAccessCode, currentAppIdentity)) {
               restoredAccessCode = storedAccessCode;
             }
+          }
+
+          if (!restoredAccessCode) {
+            restoredAccessCode = await resolveLinkedIdentityAccessCode(currentAppIdentity);
           }
         } else if (storedId) {
           const storedAccessCode = await resolveStoredAccessCodeById(storedId);
