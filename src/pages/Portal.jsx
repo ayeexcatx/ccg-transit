@@ -38,6 +38,7 @@ import { useOwnerNotifications } from '../components/notifications/useOwnerNotif
 import {
   buildDriverAssignedTrucksByDispatch,
   canUserSeeDispatch,
+  getVisibleTrucksForDispatch,
   normalizeVisibilityId,
 } from '@/lib/dispatchVisibility';
 import { buildConfirmedTruckSetForStatus } from '@/components/notifications/confirmationStateHelpers';
@@ -52,14 +53,23 @@ function getSessionActorMetadata(session) {
 }
 
 const normalizeId = (value) => normalizeVisibilityId(value);
-function myTrucksForHistory(dispatch, timeEntries, session) {
+function myTrucksForHistory(dispatch, timeEntries, session, {
+  driverAssignedTrucks = [],
+  ownerCompanyTrucks = [],
+} = {}) {
   if (session?.code_type === 'CompanyOwner') {
-    const dispatchEntries = timeEntries.filter((te) => te.dispatch_id === dispatch.id);
-    return areAllAssignedTrucksTimeComplete(dispatch, dispatchEntries);
+    const scopedTrucks = (dispatch?.trucks_assigned || []).filter((truck) => (ownerCompanyTrucks || []).includes(truck));
+    if (scopedTrucks.length === 0) return false;
+    const dispatchEntries = timeEntries.filter(
+      (te) => te.dispatch_id === dispatch.id && scopedTrucks.includes(te.truck_number),
+    );
+    return areAllAssignedTrucksTimeComplete({ trucks_assigned: scopedTrucks }, dispatchEntries);
   }
-  const trucks = (session?.allowed_trucks || []).filter(t => (dispatch.trucks_assigned || []).includes(t));
+  const trucks = getVisibleTrucksForDispatch(session, dispatch, { driverAssignedTrucks });
   if (trucks.length === 0) return false;
-  const dispatchEntries = timeEntries.filter((te) => te.dispatch_id === dispatch.id && trucks.includes(te.truck_number));
+  const dispatchEntries = timeEntries.filter(
+    (te) => te.dispatch_id === dispatch.id && trucks.includes(te.truck_number),
+  );
   return areAllAssignedTrucksTimeComplete({ trucks_assigned: trucks }, dispatchEntries);
 }
 
@@ -274,6 +284,22 @@ export default function Portal() {
     () => dispatches.filter((dispatch) => canUserSeeDispatch(session, dispatch, { driverDispatchIds, ownerCompanyId })),
     [dispatches, driverDispatchIds, ownerCompanyId, session]
   );
+  const ownerCompanyTrucks = useMemo(
+    () => {
+      const ownerCompanyRecord = companies.find((company) => normalizeId(company.id) === normalizeId(ownerCompanyId)) || null;
+      return Array.isArray(ownerCompanyRecord?.trucks) ? ownerCompanyRecord.trucks : [];
+    },
+    [companies, ownerCompanyId],
+  );
+  const nonDriverTruckBadges = useMemo(() => {
+    if (session?.code_type === 'CompanyOwner') return ownerCompanyTrucks;
+
+    const allTrucks = new Set();
+    filteredDispatches.forEach((dispatch) => {
+      (dispatch?.trucks_assigned || []).forEach((truck) => allTrucks.add(truck));
+    });
+    return [...allTrucks];
+  }, [filteredDispatches, ownerCompanyTrucks, session?.code_type]);
 
   const upcomingDispatches = useMemo(() => filteredDispatches
     .filter(d => getDispatchBucket(d) === 'upcoming')
@@ -296,11 +322,16 @@ export default function Portal() {
   const historyDispatches = useMemo(() => filteredDispatches
     .filter(d => {
       if (getDispatchBucket(d) !== 'history') return false;
-      if (!d.archived_flag) return myTrucksForHistory(d, timeEntries, session);
+      if (!d.archived_flag) {
+        return myTrucksForHistory(d, timeEntries, session, {
+          driverAssignedTrucks: driverAssignedTrucksByDispatch.get(normalizeId(d.id)) || [],
+          ownerCompanyTrucks,
+        });
+      }
       return true;
     })
     .sort((a, b) => b.date.localeCompare(a.date)),
-  [filteredDispatches, timeEntries]);
+  [driverAssignedTrucksByDispatch, filteredDispatches, ownerCompanyTrucks, session, timeEntries]);
 
   const companyMap = {};
   companies.forEach(c => { companyMap[c.id] = c.name; });
@@ -489,7 +520,7 @@ export default function Portal() {
         {!isDriverUser && (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-slate-500">Trucks:</span>
-            {(session?.allowed_trucks || []).map(t => (
+            {nonDriverTruckBadges.map(t => (
               <Badge key={t} variant="outline" className="font-mono text-xs">
                 <Truck className="h-3 w-3 mr-1" />{t}
               </Badge>

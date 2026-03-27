@@ -1159,7 +1159,7 @@ export default function AdminDispatches() {
         open={!!previewDispatch}
         onClose={handleDrawerClose}
         dispatch={previewDispatch}
-        session={{ code_type: 'Admin', allowed_trucks: previewDispatch?.trucks_assigned || [] }}
+        session={{ code_type: 'Admin' }}
         confirmations={drawerConfirmations}
         timeEntries={drawerTimeEntries}
         templateNotes={templateNotes}
