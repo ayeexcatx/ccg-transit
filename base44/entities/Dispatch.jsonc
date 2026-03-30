@@ -267,11 +267,6 @@
     "trucks_assigned"
   ],
   "rls": {
-    "create": {
-      "user_condition": {
-        "data.app_role": "admin"
-      }
-    },
     "delete": {
       "user_condition": {
         "data.app_role": "admin"
