@@ -28,7 +28,7 @@ import {
   normalizeVisibilityId,
 } from '@/lib/dispatchVisibility';
 import { listDriverDispatchesForDriver } from '@/lib/driverDispatch';
-import { resolveDriverIdentity } from '@/services/currentAppIdentityService';
+import { resolveCompanyOwnerCompanyId, resolveDriverIdentity } from '@/services/currentAppIdentityService';
 
 const dateOnly = (v) => (typeof v === 'string' ? v.slice(0, 10) : v);
 const normalizeId = (value) => normalizeVisibilityId(value);
@@ -166,6 +166,11 @@ export default function Home() {
   const navigate = useNavigate();
   const effectiveView = getEffectiveView(session);
   const activeCompanyId = getActiveCompanyId(session);
+  const ownerCompanyId = useMemo(
+    () => resolveCompanyOwnerCompanyId({ currentAppIdentity, session }),
+    [currentAppIdentity, session],
+  );
+  const dispatchCompanyId = ownerCompanyId || activeCompanyId;
   const isOwner = effectiveView === 'CompanyOwner';
   const isDriver = effectiveView === 'Driver';
   const driverIdentity = useMemo(
@@ -179,10 +184,10 @@ export default function Home() {
   });
 
   const activeCompanyName =
-    companies.find((company) => String(company.id) === String(activeCompanyId))?.name ||
+    companies.find((company) => String(company.id) === String(dispatchCompanyId))?.name ||
     session?.company_name ||
     (typeof session?.company === 'object' ? session.company?.name : null) ||
-    (!activeCompanyId && typeof session?.company === 'string' ? session.company : null);
+    (!dispatchCompanyId && typeof session?.company === 'string' ? session.company : null);
 
   const workspaceDisplayLabel = getWorkspaceDisplayLabel(session, activeCompanyName);
   const homeHeading = getHomeGreeting(workspaceDisplayLabel || session?.code_type);
@@ -201,9 +206,9 @@ export default function Home() {
   });
 
   const { data: dispatches = [] } = useQuery({
-    queryKey: ['portal-dispatches', activeCompanyId],
-    queryFn: () => base44.entities.Dispatch.filter({ company_id: activeCompanyId }, '-date', 200),
-    enabled: !!activeCompanyId,
+    queryKey: ['portal-dispatches', dispatchCompanyId],
+    queryFn: () => base44.entities.Dispatch.filter({ company_id: dispatchCompanyId }, '-date', 200),
+    enabled: !!dispatchCompanyId,
   });
   const { data: ownerCompany = null } = useQuery({
     queryKey: ['owner-company-notification-scope', activeCompanyId],
@@ -250,8 +255,8 @@ export default function Home() {
   };
 
   const filteredDispatches = useMemo(() => {
-    return dispatches.filter((dispatch) => canUserSeeDispatch(session, dispatch, { driverDispatchIds }));
-  }, [dispatches, driverDispatchIds, session]);
+    return dispatches.filter((dispatch) => canUserSeeDispatch(session, dispatch, { driverDispatchIds, ownerCompanyId: dispatchCompanyId }));
+  }, [dispatches, dispatchCompanyId, driverDispatchIds, session]);
 
   const todayDispatches = useMemo(() =>
     filteredDispatches
