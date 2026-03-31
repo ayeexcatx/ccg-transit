@@ -125,11 +125,11 @@ export default function InstallPromptBanner() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold text-slate-700">
-              {isIosContent ? 'Install this app on your iPhone or iPad' : 'Install App'}
+              {isIosContent ? 'Install this app on your iPhone' : 'Install App'}
             </h2>
             <p className="mt-1 text-xs text-slate-600">
               {isIosContent
-                ? 'Tap Share, then Add to Home Screen.'
+                ? 'Tap Share, click View More, then Add to Home Screen.'
                 : 'Install this app for faster access and a full-screen experience.'}
             </p>
           </div>

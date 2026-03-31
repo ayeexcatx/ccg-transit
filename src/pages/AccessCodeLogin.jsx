@@ -91,6 +91,10 @@ export default function AccessCodeLogin() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
+        <div className="mb-6 rounded-lg border border-sky-400/30 bg-sky-500/10 px-3 py-2 text-center text-xs text-sky-100">
+          Please download the app before entering your access code for the best experience.
+        </div>
+
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center mb-6">
             <img
