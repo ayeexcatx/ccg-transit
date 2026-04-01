@@ -2,10 +2,8 @@ import { base44 } from '@/api/base44Client';
 
 const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj || {}, key);
 
-const RESOLVED_PROFILE_CHANGE = {};
-
 function buildApprovedCompanyPayload(pendingProfileChange) {
-  const payload = { pending_profile_change: RESOLVED_PROFILE_CHANGE };
+  const payload = { pending_profile_change: null };
 
   if (hasOwn(pendingProfileChange, 'requested_name')) payload.name = pendingProfileChange.requested_name;
   if (hasOwn(pendingProfileChange, 'requested_address')) payload.address = pendingProfileChange.requested_address;
@@ -38,7 +36,7 @@ export async function reviewCompanyProfileChangeRequest({ companyId, action }) {
 
   if (action === 'reject') {
     return base44.entities.Company.update(company.id, {
-      pending_profile_change: RESOLVED_PROFILE_CHANGE,
+      pending_profile_change: null,
     });
   }
 
