@@ -13,8 +13,16 @@ function buildApprovedCompanyPayload(pendingProfileChange) {
   return payload;
 }
 
-export async function reviewCompanyProfileChangeRequest({ company, action }) {
-  if (!company?.id) throw new Error('Company record not found.');
+async function getCompanyById(companyId) {
+  const companies = await base44.entities.Company.filter({ id: companyId }, '-created_date', 1);
+  return companies[0] || null;
+}
+
+export async function reviewCompanyProfileChangeRequest({ companyId, action }) {
+  if (!companyId) throw new Error('Company record not found.');
+
+  const company = await getCompanyById(companyId);
+  if (!company) throw new Error('Company record not found.');
 
   const pendingProfileChange = company.pending_profile_change;
   if (!pendingProfileChange || pendingProfileChange.status !== 'Pending') {
