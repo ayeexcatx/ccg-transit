@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
 import { base44 } from '@/api/base44Client';
@@ -10,7 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { createAvailabilityRequestNotifications } from '@/components/notifications/availabilityRequestNotifications';
+import { useSession } from '@/components/session/SessionContext';
+import {
+  createAvailabilityRequestNotifications,
+  createOwnerAvailabilityUpdatedAdminNotification,
+  getLatestAvailabilityUpdateMs,
+  getLatestOutstandingAvailabilityRequest,
+} from '@/components/notifications/availabilityRequestNotifications';
 import {
   VIEW_MODES,
   STATUS_AVAILABLE,
@@ -26,6 +32,7 @@ import {
 const WEEKDAY_SHORT_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 export default function AvailabilityManager({ companyId, canSelectCompany = false }) {
+  const { session } = useSession();
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState('week');
   const [activeDate, setActiveDate] = useState(new Date());
@@ -36,6 +43,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
   const [formError, setFormError] = useState('');
   const [companySearch, setCompanySearch] = useState('');
   const [adminCompanyId, setAdminCompanyId] = useState('');
+  const [requestFeedback, setRequestFeedback] = useState('');
 
   const selectedCompanyId = canSelectCompany ? adminCompanyId : companyId;
 
@@ -44,6 +52,14 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
     queryFn: () => base44.entities.Company.list(),
     enabled: canSelectCompany
   });
+  const selectedCompany = useMemo(
+    () => companies.find((company) => String(company.id) === String(selectedCompanyId)) || null,
+    [companies, selectedCompanyId]
+  );
+
+  useEffect(() => {
+    setRequestFeedback('');
+  }, [selectedCompanyId]);
 
   const filteredCompanies = useMemo(() => {
     const term = companySearch.trim().toLowerCase();
@@ -93,7 +109,6 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
   const requestAvailabilityMutation = useMutation({
     mutationFn: async () => {
       if (!selectedCompanyId) throw new Error('Select a company first.');
-      const selectedCompany = companies.find((company) => String(company.id) === String(selectedCompanyId));
       const requestedByLabel = 'CCG Admin';
       return createAvailabilityRequestNotifications({
         companyId: selectedCompanyId,
@@ -103,17 +118,41 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
     },
     onSuccess: ({ ownerCount, companyName }) => {
       if (!ownerCount) {
+        setRequestFeedback('');
         toast.error(`No active company owner access code found for ${companyName || 'this company'}.`);
         return;
       }
 
+      setRequestFeedback(`Availability request sent to ${companyName || selectedCompany?.name || 'selected company'}.`);
       toast.success(`Availability request sent to ${ownerCount} owner${ownerCount === 1 ? '' : 's'}${companyName ? ` for ${companyName}` : ''}.`);
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error) => {
+      setRequestFeedback('');
       toast.error(error?.message || 'Failed to send availability request.');
     },
   });
+
+  const maybeNotifyAdminAvailabilityUpdated = async () => {
+    if (canSelectCompany || !selectedCompanyId || !session?.id) return;
+
+    const latestAvailabilityUpdateMs = getLatestAvailabilityUpdateMs({ defaults, overrides });
+    const sourceRequest = await getLatestOutstandingAvailabilityRequest({
+      companyId: selectedCompanyId,
+      ownerAccessCodeId: session.id,
+      latestAvailabilityUpdateMs,
+    });
+
+    if (!sourceRequest?.id) return;
+
+    await createOwnerAvailabilityUpdatedAdminNotification({
+      companyId: selectedCompanyId,
+      companyName: selectedCompany?.name,
+      ownerName: session?.label || session?.name || 'Company owner',
+      sourceRequestNotificationId: sourceRequest.id,
+    });
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  };
 
   const defaultMap = useMemo(() => {
     const map = new Map();
@@ -204,6 +243,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
     }
 
     await Promise.all(jobs);
+    await maybeNotifyAdminAvailabilityUpdated();
     setDefaultsEditorOpen(false);
     setDefaultsEditorForm(null);
   };
@@ -237,6 +277,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
     });
 
     await Promise.all(savePromises);
+    await maybeNotifyAdminAvailabilityUpdated();
     setOverrideEditingDate(null);
     setDateOverrideForm(null);
   };
@@ -466,6 +507,9 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
                 {requestAvailabilityMutation.isPending ? 'Sending…' : 'Request Availability'}
               </Button>
             </div>
+            {requestFeedback && (
+              <p className="text-xs text-emerald-700 text-right">{requestFeedback}</p>
+            )}
           </CardContent>
         </Card>
       }

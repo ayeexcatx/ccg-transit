@@ -27,6 +27,7 @@ import {
 import { listDriverDispatchesForDriver } from '@/lib/driverDispatch';
 import { resolveDriverIdentity } from '@/services/currentAppIdentityService';
 import { getNotificationTruckBadges } from './notificationTruckDisplay';
+import { AVAILABILITY_REQUEST_NOTIFICATION_CATEGORY } from './availabilityRequestNotifications';
 
 const normalizeId = (value) => normalizeVisibilityId(value);
 
@@ -93,7 +94,7 @@ export default function NotificationBell({ session }) {
   const shouldMarkReadOnClick = (notification) => {
     if (notification.read_flag) return false;
     if (isDriver) return true;
-    return notification.related_dispatch_id && isNotificationMarkedReadOnClick(notification);
+    return isNotificationMarkedReadOnClick(notification);
   };
 
   const handleNotificationClick = async (n) => {
@@ -105,6 +106,12 @@ export default function NotificationBell({ session }) {
       } catch {
         return;
       }
+    }
+
+    if (n.notification_category === AVAILABILITY_REQUEST_NOTIFICATION_CATEGORY && isOwner) {
+      setOpen(false);
+      navigate(createPageUrl('Availability'));
+      return;
     }
 
     if (n.related_dispatch_id) {

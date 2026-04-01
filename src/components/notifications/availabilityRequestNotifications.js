@@ -2,6 +2,8 @@ import { base44 } from '@/api/base44Client';
 
 export const AVAILABILITY_REQUEST_NOTIFICATION_CATEGORY = 'availability_request';
 export const AVAILABILITY_REQUEST_NOTIFICATION_TYPE = 'owner_availability_request';
+export const OWNER_AVAILABILITY_UPDATED_NOTIFICATION_CATEGORY = 'owner_availability_updated';
+export const OWNER_AVAILABILITY_UPDATED_NOTIFICATION_TYPE = 'owner_availability_updated_after_request';
 
 const toTimestampMs = (value) => {
   if (!value) return 0;
@@ -74,4 +76,57 @@ export async function createAvailabilityRequestNotifications({
     ownerCount: eligibleOwnerCodes.length,
     companyName: companyName || null,
   };
+}
+
+export async function getLatestOutstandingAvailabilityRequest({
+  companyId,
+  ownerAccessCodeId,
+  latestAvailabilityUpdateMs = 0,
+}) {
+  if (!companyId || !ownerAccessCodeId) return null;
+
+  const ownerNotifications = await base44.entities.Notification.filter({
+    recipient_type: 'AccessCode',
+    recipient_company_id: companyId,
+    recipient_access_code_id: ownerAccessCodeId,
+    notification_category: AVAILABILITY_REQUEST_NOTIFICATION_CATEGORY,
+  }, '-created_date', 200);
+
+  const unresolved = (ownerNotifications || [])
+    .filter((notification) => isAvailabilityRequestUnresolved(notification, latestAvailabilityUpdateMs))
+    .sort((a, b) => getAvailabilityRequestCreatedAtMs(b) - getAvailabilityRequestCreatedAtMs(a));
+
+  return unresolved[0] || null;
+}
+
+export async function createOwnerAvailabilityUpdatedAdminNotification({
+  companyId,
+  companyName,
+  ownerName,
+  sourceRequestNotificationId,
+}) {
+  if (!companyId || !sourceRequestNotificationId) return null;
+
+  const normalizedRequestId = String(sourceRequestNotificationId);
+  const existing = await base44.entities.Notification.filter({
+    recipient_type: 'Admin',
+    notification_category: OWNER_AVAILABILITY_UPDATED_NOTIFICATION_CATEGORY,
+    source_request_notification_id: normalizedRequestId,
+  }, '-created_date', 1);
+
+  if (existing?.length) return existing[0];
+
+  const safeOwnerName = ownerName || 'Company owner';
+  const safeCompanyName = companyName || 'company';
+
+  return base44.entities.Notification.create({
+    recipient_type: 'Admin',
+    title: 'Availability Updated',
+    message: `${safeOwnerName} for ${safeCompanyName} updated their availability.`,
+    read_flag: false,
+    notification_category: OWNER_AVAILABILITY_UPDATED_NOTIFICATION_CATEGORY,
+    notification_type: OWNER_AVAILABILITY_UPDATED_NOTIFICATION_TYPE,
+    recipient_company_id: companyId,
+    source_request_notification_id: normalizedRequestId,
+  });
 }
