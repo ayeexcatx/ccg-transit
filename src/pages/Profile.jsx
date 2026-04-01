@@ -21,6 +21,7 @@ import { CompanyOwnerProfileOverview, CompanyOwnerSmsCard } from '@/components/p
 import SmsConsentDisclosure from '@/components/profile/SmsConsentDisclosure';
 import { getActiveCompanyId, getEffectiveView } from '@/components/session/workspaceUtils';
 import { resolveAdminDisplayName, resolveProfileName } from '@/lib/adminIdentity';
+import { resolveCompanyOwnerCompanyId } from '@/services/currentAppIdentityService';
 
 const CONTACT_TYPE_OPTIONS = ['Office', 'Cell', 'Email', 'Fax', 'Other'];
 
@@ -404,22 +405,25 @@ function DriverProfile({ session }) {
 }
 
 function CompanyOwnerProfile({ session }) {
+  const { currentAppIdentity } = useAuth();
   const activeCompanyId = getActiveCompanyId(session);
+  const ownerWorkspaceCompanyId = resolveCompanyOwnerCompanyId({ currentAppIdentity, session });
+  const profileCompanyId = ownerWorkspaceCompanyId || activeCompanyId;
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({ name: '', address: '', contact_methods: [{ type: 'Office', value: '' }] });
   const [smsIndex, setSmsIndex] = useState(0);
 
   const { data: companies = [] } = useQuery({
-    queryKey: ['owner-profile-company', activeCompanyId],
-    queryFn: () => base44.entities.Company.filter({ id: activeCompanyId }, '-created_date', 1),
-    enabled: !!activeCompanyId,
+    queryKey: ['owner-profile-company', profileCompanyId],
+    queryFn: () => base44.entities.Company.filter({ id: profileCompanyId }, '-created_date', 1),
+    enabled: !!profileCompanyId,
   });
 
   const { data: accessCodes = [] } = useQuery({
-    queryKey: ['owner-profile-access-codes', activeCompanyId],
-    queryFn: () => base44.entities.AccessCode.filter({ company_id: activeCompanyId, code_type: 'CompanyOwner' }, '-created_date', 200),
-    enabled: !!activeCompanyId,
+    queryKey: ['owner-profile-access-codes', profileCompanyId],
+    queryFn: () => base44.entities.AccessCode.filter({ company_id: profileCompanyId, code_type: 'CompanyOwner' }, '-created_date', 200),
+    enabled: !!profileCompanyId,
   });
 
   const company = companies[0] || null;
@@ -455,7 +459,7 @@ function CompanyOwnerProfile({ session }) {
       return updatedCompany;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['owner-profile-company', activeCompanyId] });
+      queryClient.invalidateQueries({ queryKey: ['owner-profile-company', profileCompanyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       queryClient.invalidateQueries({ queryKey: ['companies-workspace'] });
       queryClient.invalidateQueries({ queryKey: ['access-codes'] });
@@ -490,7 +494,7 @@ function CompanyOwnerProfile({ session }) {
       return updatedAccessCode;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['owner-profile-access-codes', activeCompanyId] });
+      queryClient.invalidateQueries({ queryKey: ['owner-profile-access-codes', profileCompanyId] });
       queryClient.invalidateQueries({ queryKey: ['access-codes'] });
       toast.success('Owner SMS preference updated');
     },

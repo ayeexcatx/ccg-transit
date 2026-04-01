@@ -18,7 +18,7 @@ import AvailabilityRequestPrompt from '@/components/availability/AvailabilityReq
 import { getNotificationTruckBadges } from '@/components/notifications/notificationTruckDisplay';
 import { useOwnerNotifications } from '../components/notifications/useOwnerNotifications';
 import { useConfirmationsQuery } from '../components/notifications/useConfirmationsQuery';
-import { getActiveCompanyId, getEffectiveView, getWorkspaceDisplayLabel } from '../components/session/workspaceUtils';
+import { getEffectiveView, getWorkspaceDisplayLabel } from '../components/session/workspaceUtils';
 import {
   getNotificationEffectiveReadFlag,
   isNotificationMarkedReadOnClick,
@@ -172,13 +172,12 @@ export default function Home() {
   const { currentAppIdentity } = useAuth();
   const navigate = useNavigate();
   const effectiveView = getEffectiveView(session);
-  const activeCompanyId = getActiveCompanyId(session);
-  const ownerCompanyId = useMemo(
+  const isOwner = effectiveView === 'CompanyOwner';
+  const ownerWorkspaceCompanyId = useMemo(
     () => resolveCompanyOwnerCompanyId({ currentAppIdentity, session }),
     [currentAppIdentity, session],
   );
-  const dispatchCompanyId = ownerCompanyId || activeCompanyId;
-  const isOwner = effectiveView === 'CompanyOwner';
+  const dispatchCompanyId = ownerWorkspaceCompanyId;
   const isDriver = effectiveView === 'Driver';
   const driverIdentity = useMemo(
     () => resolveDriverIdentity({ currentAppIdentity, session }),
@@ -218,24 +217,24 @@ export default function Home() {
     enabled: !!dispatchCompanyId,
   });
   const { data: ownerCompany = null } = useQuery({
-    queryKey: ['owner-company-notification-scope', activeCompanyId],
+    queryKey: ['owner-company-notification-scope', ownerWorkspaceCompanyId],
     queryFn: async () => {
-      if (!activeCompanyId) return null;
-      const companies = await base44.entities.Company.filter({ id: activeCompanyId }, '-created_date', 1);
+      if (!ownerWorkspaceCompanyId) return null;
+      const companies = await base44.entities.Company.filter({ id: ownerWorkspaceCompanyId }, '-created_date', 1);
       return companies?.[0] || null;
     },
-    enabled: isOwner && !!activeCompanyId,
+    enabled: isOwner && !!ownerWorkspaceCompanyId,
   });
   const ownerScopeTrucks = Array.isArray(ownerCompany?.trucks) ? ownerCompany.trucks : [];
   const { data: ownerAvailabilityDefaults = [] } = useQuery({
-    queryKey: ['home-owner-availability-defaults', activeCompanyId],
-    queryFn: () => base44.entities.CompanyAvailabilityDefault.filter({ company_id: activeCompanyId }, '-created_date', 500),
-    enabled: isOwner && !!activeCompanyId,
+    queryKey: ['home-owner-availability-defaults', ownerWorkspaceCompanyId],
+    queryFn: () => base44.entities.CompanyAvailabilityDefault.filter({ company_id: ownerWorkspaceCompanyId }, '-created_date', 500),
+    enabled: isOwner && !!ownerWorkspaceCompanyId,
   });
   const { data: ownerAvailabilityOverrides = [] } = useQuery({
-    queryKey: ['home-owner-availability-overrides', activeCompanyId],
-    queryFn: () => base44.entities.CompanyAvailabilityOverride.filter({ company_id: activeCompanyId }, '-created_date', 1000),
-    enabled: isOwner && !!activeCompanyId,
+    queryKey: ['home-owner-availability-overrides', ownerWorkspaceCompanyId],
+    queryFn: () => base44.entities.CompanyAvailabilityOverride.filter({ company_id: ownerWorkspaceCompanyId }, '-created_date', 1000),
+    enabled: isOwner && !!ownerWorkspaceCompanyId,
   });
 
   const { latestUnresolvedAvailabilityRequest } = useMemo(() => {
@@ -305,13 +304,14 @@ export default function Home() {
   });
 
   const announcements = useMemo(() => {
+    const companyAnnouncementScopeId = isOwner ? ownerWorkspaceCompanyId : null;
     return allAnnouncements.filter(a => {
       if (a.target_type === 'All') return true;
-      if (a.target_type === 'Companies') return (a.target_company_ids || []).includes(activeCompanyId);
+      if (a.target_type === 'Companies') return (a.target_company_ids || []).includes(companyAnnouncementScopeId);
       if (a.target_type === 'AccessCodes') return (a.target_access_code_ids || []).includes(session?.id);
       return false;
     }).sort((a, b) => (a.priority || 3) - (b.priority || 3));
-  }, [allAnnouncements, activeCompanyId, session]);
+  }, [allAnnouncements, isOwner, ownerWorkspaceCompanyId, session]);
 
   const driverAssignedTrucksByDispatch = useMemo(
     () => buildDriverAssignedTrucksByDispatch(driverAssignments),

@@ -23,9 +23,12 @@ import {
 import NotificationsPageItem from '@/components/notifications/NotificationsPageItem';
 import { getActiveCompanyId, getEffectiveView } from '@/components/session/workspaceUtils';
 import { AVAILABILITY_REQUEST_NOTIFICATION_CATEGORY } from '@/components/notifications/availabilityRequestNotifications';
+import { useAuth } from '@/lib/AuthContext';
+import { resolveCompanyOwnerCompanyId } from '@/services/currentAppIdentityService';
 
 export default function Notifications() {
   const { session } = useSession();
+  const { currentAppIdentity } = useAuth();
   const navigate = useNavigate();
   const { openAdminDispatchDrawer } = useAdminDispatchDrawer();
   const effectiveView = getEffectiveView(session);
@@ -33,14 +36,19 @@ export default function Notifications() {
   const isOwner = effectiveView === 'CompanyOwner';
   const isDriver = effectiveView === 'Driver';
   const isAdmin = effectiveView === 'Admin';
+  const ownerWorkspaceCompanyId = React.useMemo(
+    () => resolveCompanyOwnerCompanyId({ currentAppIdentity, session }),
+    [currentAppIdentity, session],
+  );
+  const notificationScopeCompanyId = isOwner ? ownerWorkspaceCompanyId : activeCompanyId;
   const { notifications, unreadCount, isLoading, markReadAsync, markAllRead, markAllReadPending } = useOwnerNotifications(session);
 
   const { data: confirmations = [] } = useConfirmationsQuery(isOwner);
 
   const { data: dispatches = [] } = useQuery({
-    queryKey: ['portal-dispatches', activeCompanyId],
-    queryFn: () => base44.entities.Dispatch.filter({ company_id: activeCompanyId }, '-date', 200),
-    enabled: !!activeCompanyId,
+    queryKey: ['portal-dispatches', notificationScopeCompanyId],
+    queryFn: () => base44.entities.Dispatch.filter({ company_id: notificationScopeCompanyId }, '-date', 200),
+    enabled: !!notificationScopeCompanyId,
   });
 
   const dispatchMap = Object.fromEntries(dispatches.map((dispatch) => [dispatch.id, dispatch]));
@@ -52,13 +60,13 @@ export default function Notifications() {
     })
   );
   const { data: ownerCompany = null } = useQuery({
-    queryKey: ['owner-company-notification-scope', activeCompanyId],
+    queryKey: ['owner-company-notification-scope', notificationScopeCompanyId],
     queryFn: async () => {
-      if (!activeCompanyId) return null;
-      const companies = await base44.entities.Company.filter({ id: activeCompanyId }, '-created_date', 1);
+      if (!notificationScopeCompanyId) return null;
+      const companies = await base44.entities.Company.filter({ id: notificationScopeCompanyId }, '-created_date', 1);
       return companies?.[0] || null;
     },
-    enabled: isOwner && !!activeCompanyId,
+    enabled: isOwner && !!notificationScopeCompanyId,
   });
   const ownerScopeTrucks = Array.isArray(ownerCompany?.trucks) ? ownerCompany.trucks : [];
   
