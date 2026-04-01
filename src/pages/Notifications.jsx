@@ -22,6 +22,7 @@ import {
 } from '@/lib/dispatchVisibility';
 import NotificationsPageItem from '@/components/notifications/NotificationsPageItem';
 import { getActiveCompanyId, getEffectiveView } from '@/components/session/workspaceUtils';
+import { AVAILABILITY_REQUEST_NOTIFICATION_CATEGORY } from '@/components/notifications/availabilityRequestNotifications';
 
 export default function Notifications() {
   const { session } = useSession();
@@ -64,12 +65,17 @@ export default function Notifications() {
   const handleNotificationClick = async (n) => {
     if (!session) return;
 
-    if (!isDriver && n.related_dispatch_id && isNotificationMarkedReadOnClick(n) && !n.read_flag) {
+    if (!isDriver && isNotificationMarkedReadOnClick(n) && !n.read_flag) {
       try {
         await markReadAsync(n.id);
       } catch {
         return;
       }
+    }
+
+    if (n.notification_category === AVAILABILITY_REQUEST_NOTIFICATION_CATEGORY && isOwner) {
+      navigate(createPageUrl('Availability'));
+      return;
     }
 
     if (n.related_dispatch_id) {
