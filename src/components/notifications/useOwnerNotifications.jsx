@@ -11,7 +11,7 @@ import {
   getDriverDispatchIdSet,
   normalizeVisibilityId,
 } from '@/lib/dispatchVisibility';
-import { resolveDriverIdentity } from '@/services/currentAppIdentityService';
+import { resolveCompanyOwnerCompanyId, resolveDriverIdentity } from '@/services/currentAppIdentityService';
 import { listDriverDispatchesForDriver } from '@/lib/driverDispatch';
 
 function getDriverNotificationSeenKind(notification, dispatch = null) {
@@ -36,6 +36,8 @@ export function useOwnerNotifications(session) {
   const isDriver = effectiveView === 'Driver';
   const isOwner = effectiveView === 'CompanyOwner';
   const isAdmin = effectiveView === 'Admin';
+  const ownerWorkspaceCompanyId = resolveCompanyOwnerCompanyId({ currentAppIdentity, session });
+  const notificationScopeCompanyId = isOwner ? ownerWorkspaceCompanyId : activeCompanyId;
 
   const queryKey = ['notifications', session?.id];
 
@@ -49,13 +51,13 @@ export function useOwnerNotifications(session) {
       }
 
       const isAdminOwnerWorkspace = isOwner && session.raw_code_type === 'Admin';
-      if (isAdminOwnerWorkspace && activeCompanyId) {
+      if (isAdminOwnerWorkspace && notificationScopeCompanyId) {
         const [allAccessCodeNotifications, ownerCodes] = await Promise.all([
           base44.entities.Notification.filter({ recipient_type: 'AccessCode' }, '-created_date', 200),
           base44.entities.AccessCode.filter({
             code_type: 'CompanyOwner',
             active_flag: true,
-            company_id: activeCompanyId,
+            company_id: notificationScopeCompanyId,
           }, '-created_date', 500),
         ]);
 
@@ -86,19 +88,19 @@ export function useOwnerNotifications(session) {
 
   const { data: confirmations = [] } = useConfirmationsQuery(isOwner);
   const { data: ownerCompany = null } = useQuery({
-    queryKey: ['owner-company-notification-scope', activeCompanyId],
+    queryKey: ['owner-company-notification-scope', notificationScopeCompanyId],
     queryFn: async () => {
-      if (!activeCompanyId) return null;
-      const companies = await base44.entities.Company.filter({ id: activeCompanyId }, '-created_date', 1);
+      if (!notificationScopeCompanyId) return null;
+      const companies = await base44.entities.Company.filter({ id: notificationScopeCompanyId }, '-created_date', 1);
       return companies?.[0] || null;
     },
-    enabled: isOwner && !!activeCompanyId,
+    enabled: isOwner && !!notificationScopeCompanyId,
   });
 
   const { data: dispatches = [] } = useQuery({
-    queryKey: ['portal-dispatches', activeCompanyId],
-    queryFn: () => base44.entities.Dispatch.filter({ company_id: activeCompanyId }, '-date', 200),
-    enabled: !!activeCompanyId && !isAdmin,
+    queryKey: ['portal-dispatches', notificationScopeCompanyId],
+    queryFn: () => base44.entities.Dispatch.filter({ company_id: notificationScopeCompanyId }, '-date', 200),
+    enabled: !!notificationScopeCompanyId && !isAdmin,
   });
 
   const driverDispatchIds = getDriverDispatchIdSet(driverAssignments);
@@ -135,7 +137,7 @@ export function useOwnerNotifications(session) {
   const invalidateNotificationQueries = () => Promise.all([
     queryClient.invalidateQueries({ queryKey }),
     queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-    queryClient.invalidateQueries({ queryKey: ['portal-dispatches', activeCompanyId] }),
+    queryClient.invalidateQueries({ queryKey: ['portal-dispatches', notificationScopeCompanyId] }),
     queryClient.invalidateQueries({ queryKey: ['driver-dispatch-assignments', driverIdentity] }),
   ]);
 
@@ -171,7 +173,7 @@ export function useOwnerNotifications(session) {
 
   const refresh = () => Promise.all([
     queryClient.invalidateQueries({ queryKey }),
-    queryClient.invalidateQueries({ queryKey: ['portal-dispatches', activeCompanyId] }),
+    queryClient.invalidateQueries({ queryKey: ['portal-dispatches', notificationScopeCompanyId] }),
   ]);
 
   const markRead = (id) => markReadMutation.mutate(id);
@@ -300,7 +302,7 @@ export function useOwnerNotifications(session) {
       await notifyOwnerDriverSeen({
         dispatch: dispatch || {
           id: notification.related_dispatch_id,
-          company_id: notification.recipient_company_id || activeCompanyId,
+          company_id: notification.recipient_company_id || notificationScopeCompanyId,
           status: 'Dispatch',
           shift_time: null,
           reference_tag: null,
