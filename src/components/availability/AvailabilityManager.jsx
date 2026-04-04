@@ -15,8 +15,8 @@ import {
   createAvailabilityRequestNotifications,
   createOwnerAvailabilityUpdatedAdminNotification,
   getLatestAvailabilityUpdateMs,
-  getLatestOutstandingAvailabilityRequest,
-} from '@/components/notifications/availabilityRequestNotifications';
+  getLatestOutstandingAvailabilityRequest } from
+'@/components/notifications/availabilityRequestNotifications';
 import {
   VIEW_MODES,
   STATUS_AVAILABLE,
@@ -113,7 +113,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       return createAvailabilityRequestNotifications({
         companyId: selectedCompanyId,
         companyName: selectedCompany?.name,
-        requestedByLabel,
+        requestedByLabel
       });
     },
     onSuccess: ({ ownerCount, companyName }) => {
@@ -130,7 +130,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
     onError: (error) => {
       setRequestFeedback('');
       toast.error(error?.message || 'Failed to send availability request.');
-    },
+    }
   });
 
   const maybeNotifyAdminAvailabilityUpdated = async () => {
@@ -140,7 +140,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
     const sourceRequest = await getLatestOutstandingAvailabilityRequest({
       companyId: selectedCompanyId,
       ownerAccessCodeId: session.id,
-      latestAvailabilityUpdateMs,
+      latestAvailabilityUpdateMs
     });
 
     if (!sourceRequest?.id) return;
@@ -149,7 +149,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
       companyId: selectedCompanyId,
       companyName: selectedCompany?.name,
       ownerName: session?.label || session?.name || 'Company owner',
-      sourceRequestNotificationId: sourceRequest.id,
+      sourceRequestNotificationId: sourceRequest.id
     });
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
   };
@@ -423,7 +423,7 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
 
   const renderWeeklyDefaultsMatrix = () =>
   <Card data-tour="recurring-weekly-defaults">
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="bg-slate-200 p-4 space-y-3">
         <div className="space-y-1">
           <h3 className="text-sm font-semibold text-slate-800">Recurring Weekly Defaults</h3>
           <p className="text-slate-500 text-sm font-medium opacity-100">Select your default availability that is the same every week.</p>
@@ -500,16 +500,16 @@ export default function AvailabilityManager({ companyId, canSelectCompany = fals
             </div>
             <div className="flex justify-end">
               <Button
-                size="sm"
-                onClick={() => requestAvailabilityMutation.mutate()}
-                disabled={!selectedCompanyId || requestAvailabilityMutation.isPending}
-              >
+              size="sm"
+              onClick={() => requestAvailabilityMutation.mutate()}
+              disabled={!selectedCompanyId || requestAvailabilityMutation.isPending}>
+              
                 {requestAvailabilityMutation.isPending ? 'Sending…' : 'Request Availability'}
               </Button>
             </div>
-            {requestFeedback && (
-              <p className="text-xs text-emerald-700 text-right">{requestFeedback}</p>
-            )}
+            {requestFeedback &&
+          <p className="text-xs text-emerald-700 text-right">{requestFeedback}</p>
+          }
           </CardContent>
         </Card>
       }
