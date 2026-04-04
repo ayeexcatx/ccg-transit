@@ -58,6 +58,12 @@ export default function Drivers() {
     enabled: !!activeCompanyId,
   });
 
+  const { data: accessCodes = [] } = useQuery({
+    queryKey: ['driver-access-codes', activeCompanyId],
+    queryFn: () => base44.entities.AccessCode.filter({ company_id: activeCompanyId, code_type: 'Driver' }, '-created_date', 500),
+    enabled: !!activeCompanyId,
+  });
+
   const { data: companies = [] } = useQuery({
     queryKey: ['companies'],
     queryFn: () => base44.entities.Company.list(),
@@ -67,6 +73,13 @@ export default function Drivers() {
     () => [...drivers].sort((a, b) => (a.driver_name || '').localeCompare(b.driver_name || '')),
     [drivers],
   );
+
+  const accessCodeById = useMemo(() => {
+    return accessCodes.reduce((lookup, code) => {
+      if (code?.id) lookup[code.id] = code;
+      return lookup;
+    }, {});
+  }, [accessCodes]);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['drivers', activeCompanyId] });
@@ -191,11 +204,13 @@ export default function Drivers() {
           {sortedDrivers.map((driver) => {
             const accessCodeStatus = driver.access_code_status || 'Not Requested';
             const hasCreatedCode = accessCodeStatus === 'Created' && !!driver.access_code_id;
+            const driverAccessCode = driver.access_code_id ? accessCodeById[driver.access_code_id] : null;
 
             return (
               <DriverCard
                 key={driver.id}
                 driver={driver}
+                driverAccessCode={driverAccessCode}
                 onEdit={() => openEdit(driver)}
                 onDelete={() => setDriverToDelete(driver)}
                 onRequestCode={() => createAccessCodeMutation.mutate(driver)}

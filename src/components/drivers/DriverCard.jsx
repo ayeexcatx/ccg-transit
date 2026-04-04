@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, KeyRound, Menu, Pencil, Phone, Trash2, TriangleAlert, UserRound } from 'lucide-react';
+import { Check, Copy, Eye, EyeOff, KeyRound, Menu, Pencil, Phone, Trash2, TriangleAlert, UserRound } from 'lucide-react';
 import { formatPhoneNumber, getDriverSmsState } from '@/lib/sms';
 import DriverSmsStatus from '@/components/drivers/DriverSmsStatus';
+import { toast } from 'sonner';
 
 function DriverActionButtons({ desktop = false, onEdit, onDelete, onRequestCode, requestLabel, requestDisabled }) {
   if (desktop) {
@@ -51,11 +52,39 @@ function DriverSmsGuidance({ ownerSmsEnabled, desktop = false }) {
   return <p className={desktop ? 'text-xs text-slate-500 mt-2' : 'text-xs text-slate-500'}>This driver will not receive notifications on their phone. They will only see pending notifications when they open the app.</p>;
 }
 
-export default function DriverCard({ driver, onEdit, onDelete, onRequestCode, requestDisabled }) {
+function DriverAccessCodeRow({ accessCodeValue, revealed, onToggleReveal, onCopy, desktop = false }) {
+  if (!accessCodeValue) return null;
+
+  return (
+    <div className="flex items-center gap-2 text-sm text-slate-600">
+      <span className="text-slate-500 shrink-0">{desktop ? 'Access Code:' : 'Access Code'}</span>
+      <code className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold tracking-wider text-slate-800">
+        {revealed ? accessCodeValue : '••••••••'}
+      </code>
+      <Button type="button" variant="ghost" size="icon" onClick={onToggleReveal} className="h-7 w-7 text-slate-500 hover:text-slate-700">
+        {revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+      </Button>
+      <Button type="button" variant="ghost" size="icon" onClick={onCopy} className="h-7 w-7 text-slate-500 hover:text-slate-700">
+        <Copy className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+}
+
+export default function DriverCard({ driver, driverAccessCode, onEdit, onDelete, onRequestCode, requestDisabled }) {
   const status = driver.status || (driver.active_flag === false ? 'Inactive' : 'Active');
   const hasCreatedCode = driver.access_code_status === 'Created' && !!driver.access_code_id;
   const requestLabel = hasCreatedCode ? 'Created' : 'Create Access Code';
   const smsState = getDriverSmsState(driver);
+  const [isCodeVisible, setIsCodeVisible] = useState(false);
+  const accessCodeValue = hasCreatedCode ? (driverAccessCode?.code || '') : '';
+  const showAccessCodeControls = hasCreatedCode && !!accessCodeValue;
+
+  const handleCopyAccessCode = () => {
+    if (!accessCodeValue) return;
+    navigator.clipboard.writeText(accessCodeValue);
+    toast.success('Code copied');
+  };
 
   return (
     <Card className="overflow-hidden border-slate-200 shadow-sm shadow-slate-200/70 sm:shadow-none">
@@ -89,6 +118,14 @@ export default function DriverCard({ driver, onEdit, onDelete, onRequestCode, re
               <span>{formatPhoneNumber(driver.phone)}</span>
             </div>
           )}
+          {showAccessCodeControls && (
+            <DriverAccessCodeRow
+              accessCodeValue={accessCodeValue}
+              revealed={isCodeVisible}
+              onToggleReveal={() => setIsCodeVisible((prev) => !prev)}
+              onCopy={handleCopyAccessCode}
+            />
+          )}
 
           {driver.notes && <p className="text-sm text-slate-500">{driver.notes}</p>}
 
@@ -105,6 +142,15 @@ export default function DriverCard({ driver, onEdit, onDelete, onRequestCode, re
               <Badge variant={smsState.effective ? 'default' : 'secondary'} className="text-[11px]">{smsState.effective ? <><Check className="h-3 w-3 mr-1" />SMS Active</> : 'SMS Not Active'}</Badge>
             </div>
             {driver.phone && <p className="text-sm text-slate-600">Phone: {driver.phone}</p>}
+            {showAccessCodeControls && (
+              <DriverAccessCodeRow
+                accessCodeValue={accessCodeValue}
+                revealed={isCodeVisible}
+                onToggleReveal={() => setIsCodeVisible((prev) => !prev)}
+                onCopy={handleCopyAccessCode}
+                desktop
+              />
+            )}
             {driver.notes && <p className="text-sm text-slate-500">{driver.notes}</p>}
             <DriverSmsStatus driver={driver} desktop />
             <DriverSmsGuidance ownerSmsEnabled={driver.owner_sms_enabled} desktop />
