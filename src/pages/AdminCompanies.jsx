@@ -746,10 +746,6 @@ export default function AdminCompanies() {
             <div>
               <Label>Contact Info</Label>
               <div className="space-y-2 mt-1">
-                <div>
-                  <Label className="text-xs text-slate-500">Additional Contact Name</Label>
-                  <Input value={form.additional_contact_name} onChange={(e) => setForm((prev) => ({ ...prev, additional_contact_name: e.target.value }))} placeholder="Contact person name" />
-                </div>
                 {form.contact_methods.map((method, index) => {
                   const isPhoneType = PHONE_CONTACT_TYPES.includes(method.type);
                   return (
