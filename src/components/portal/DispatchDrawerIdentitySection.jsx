@@ -122,7 +122,7 @@ export default function DispatchDrawerIdentitySection({
               <p className="text-xs text-slate-500">
                 <span className="block">Select assigned trucks. You must keep exactly {requiredTruckCount} truck{requiredTruckCount === 1 ? '' : 's'}.</span>
                 <span className="block">Please uncheck one truck first before checking another. Then click Save.</span>
-                <span className="block">Remember to recheck the drivers you have assigned, if any.</span>
+                <span className="block">Remember to reassign the drivers after you Edit. Review the Drivers page for more information.</span>
               </p>
               <div className="space-y-2">
                 {ownerTruckOptions.map((truck) => (
