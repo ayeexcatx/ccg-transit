@@ -569,7 +569,7 @@ export default function AdminCompanies() {
 
     saveMutation.mutate({
       ...form,
-      additional_contact_name: form.additional_contact_name.trim(),
+      additional_contact_name: (form.additional_contact_name || '').trim(),
       contact_methods: cleanedContactMethods,
       contact_info: cleanedContactMethods.map((method) => `${method.name ? `${method.name} | ` : ''}${method.type}: ${method.value}`).join(' • '),
     });
