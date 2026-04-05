@@ -1,5 +1,12 @@
 # Portal page + DispatchDetailDrawer behavior baseline
 
+
+## Reconciliation addendum (2026-04-05)
+- Treat historical `allowed_trucks` owner/truck visibility language in this document as outdated where it conflicts with current code.
+- Current portal list visibility split is: owner/company workspace => company-scoped dispatch query + role filtering; driver workspace => active visible `DriverDispatch` assignment scope.
+- Driver seen badges and acknowledgement rely on assignment `last_seen_at` plus `delivery_status`, not legacy `receipt_confirmed_*` fields.
+- Truck access-code-user sections are historical and no longer represent a supported login path.
+
 _Last reviewed: 2026-03-23_
 
 This document is a conservative, workflow-specific baseline for:

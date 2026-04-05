@@ -4,7 +4,7 @@
 CCG Dispatch Hub is a dispatch management system built for CCG Transit using Base44 and React. It supports daily dispatch operations across administrators, company owners, and drivers.
 
 The repository contains the frontend application code synchronized with Base44 through GitHub.
-Base44 entities and backend configuration are managed within the Base44 platform and are not stored in this repository.
+Base44 entities and backend configuration are managed in Base44, with repository snapshots available under `base44/entities` for reference and versioned review.
 
 View and Edit  your app on [Base44.com](http://Base44.com) 
 
@@ -123,6 +123,8 @@ The application is role-based and dynamically adjusts visibility and workflows.
 - Companies
 - Access Codes
 - Template Notes
+- SMS Center
+- Driver Protocol
 2. Admins control dispatch lifecycle and system configuration.
 
 ** Company Owner **
@@ -141,7 +143,7 @@ The application is role-based and dynamically adjusts visibility and workflows.
 - Home
 - Dispatch Portal
 - Incidents
-3. Driver views rely on DriverDispatch records.
+3. Driver views rely on active, visible DriverDispatch records (`delivery_status` of `sent`/`seen`).
 ---------------------------------------------------------------------
 
 # System Architecture #
@@ -187,8 +189,8 @@ The application is role-based and dynamically adjusts visibility and workflows.
 14. IncidentUpdate
 15. Notification
 16. TimeEntry
-** These entities are not included in the GitHub repository. **
-** They must exist in the connected Base44 application. **
+** Snapshot schemas are committed in `base44/entities` for reference. **
+** Live entities must still exist and be configured in the connected Base44 application. **
 ---------------------------------------------------------------------
 
 # Dispatch Filtering Logic#
@@ -203,7 +205,7 @@ The application is role-based and dynamically adjusts visibility and workflows.
 | Role          | Dispatch visibility                            |
 | ------------- | ---------------------------------------------- |
 | Admin         | All dispatches                                 |
-| Company Owner | Dispatches assigned to company trucks          |
+| Company Owner | Company dispatches (company-scoped), with truck-level actions in drawer |
 | Driver        | Dispatches assigned through driver assignments |
  ------------------------------------------------------------------
 
@@ -232,9 +234,14 @@ src
  ├── pages.config.js
  └── main.jsx
 
-functions
- ├── sendNotificationSms
- └── syncDispatchHtmlToDrive
+base44
+ ├── entities
+ │    └── *.jsonc
+ └── functions
+      ├── sendNotificationSms
+      ├── signalwireSmsInboundWebhook
+      ├── signalwireSmsStatusWebhook
+      └── syncDispatchHtmlToDrive
 -------------------------------------------------------------------
 
 ** Key files **
