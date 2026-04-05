@@ -1,5 +1,9 @@
 # AdminDispatches.jsx behavior baseline
 
+
+## Reconciliation updates (2026-04-05)
+- Where this baseline references assignment receipt-confirmed field resets, align with current driver-assignment delivery/seen model (`delivery_status`, `last_seen_at`, `last_opened_at`).
+
 ## Scope and intent
 This baseline documents the current page-level behavior of `src/pages/AdminDispatches.jsx` and the directly coupled workflow it drives so the page can be refactored later without changing behavior. It covers the admin dispatch list, live board, dispatch create/edit/copy/delete/archive flows, edit locking, notification-triggering behavior, Google Drive sync hooks, drawer preview behavior, and the directly related form/drawer components and helpers that the page depends on.
 

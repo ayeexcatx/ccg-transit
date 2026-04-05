@@ -1,5 +1,11 @@
 # Notifications behavior baseline
 
+
+## Change log (2026-04-05)
+- **Added:** Driver seen/open acknowledgment now updates `DriverDispatch.delivery_status` (`sent` -> `seen`) and timestamps (`last_seen_at`, `last_opened_at`).
+- **Removed:** Legacy `DriverDispatch.receipt_confirmed_*` wording from preservation expectations.
+- **Clarified:** Owner/driver visibility remains company-scoped (owner) vs assignment-scoped (driver), with notification filtering layered on top.
+
 ## Intent of this document
 This document captures the current notification behavior around dispatch notifications, owner confirmation notifications, driver notification read/seen flows, removal acknowledgement flows, and SMS eligibility side effects. It is intentionally conservative and written to preserve current behavior during future refactors.
 

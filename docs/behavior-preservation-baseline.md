@@ -1,5 +1,11 @@
 # Behavior Preservation Baseline
 
+
+## Reconciliation updates (2026-04-05)
+- Truck access-code logins remain unsupported; any historical truck-user capability references are deprecated and should not be used as current behavior.
+- Driver assignment acknowledgement now relies on `DriverDispatch.delivery_status` plus `last_seen_at` / `last_opened_at`, not legacy `receipt_confirmed_*` fields.
+- Owner portal visibility should be treated as company-scoped at list level with assignment/truck detail resolution inside drawer and notification logic.
+
 Generated from repository code review on 2026-03-23. This document is intentionally conservative: when behavior was not explicit in code, it is labeled **likely inferred from code** or **needs manual verification**.
 
 ## Legend

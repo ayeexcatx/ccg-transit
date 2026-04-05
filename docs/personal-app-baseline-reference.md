@@ -1,5 +1,11 @@
 # **App Baseline – Global Access & Admin Dashboard**
 
+
+## Reconciliation updates (2026-04-05)
+- Driver acknowledgement/seen behavior should be interpreted via `DriverDispatch.delivery_status` and seen/open timestamps (`last_seen_at`, `last_opened_at`), not legacy receipt-confirmed fields.
+- Historical truck-user role assumptions are deprecated; supported access-code roles are Admin, CompanyOwner, and Driver.
+- Owner dispatch visibility should be treated as company-scoped with truck-level actions in dispatch detail flows.
+
 ---
 
 ## Change log (2026-03-28)

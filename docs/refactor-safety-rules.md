@@ -1,5 +1,10 @@
 # Refactor Safety Rules
 
+
+## Reconciliation updates (2026-04-05)
+- Supersede any legacy receipt-confirmed wording: driver acknowledgment state is `delivery_status` + `last_seen_at`/`last_opened_at`.
+- Supersede any owner visibility invariants that require `allowed_trucks ∩ dispatch.trucks_assigned` as the primary source; current owner list visibility is company-scoped, with truck-specific behavior resolved in drawer/notification logic.
+
 Source of truth: existing baseline docs in `/docs` (especially notifications, admin dispatches, and portal dispatch drawer baselines). This document only extracts behavior already documented there.
 
 ## 1) Critical invariants (must never change)
