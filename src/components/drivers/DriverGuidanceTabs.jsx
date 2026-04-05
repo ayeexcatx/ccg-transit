@@ -6,30 +6,30 @@ export default function DriverGuidanceTabs({ helpLanguage, onLanguageChange }) {
   return (
     <Card className="border-slate-200 bg-slate-50/60">
       <CardContent className="p-5 space-y-6">
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="bg-stone-400 text-amber-900 p-3 text-sm rounded-lg border border-amber-200">
           Driver SMS reminder: owners can enable the company permission layer here, but each driver still must use <span className="font-medium">Menu → Profile</span> to opt in before SMS becomes active.
         </div>
 
         <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-4">
           {[
-            { value: 'en', label: 'English' },
-            { value: 'pt', label: 'Portuguese' },
-          ].map((language) => (
-            <Button
-              key={language.value}
-              type="button"
-              variant={helpLanguage === language.value ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onLanguageChange(language.value)}
-              className={helpLanguage === language.value ? 'shadow-sm' : 'bg-white'}
-            >
+          { value: 'en', label: 'English' },
+          { value: 'pt', label: 'Portuguese' }].
+          map((language) =>
+          <Button
+            key={language.value}
+            type="button"
+            variant={helpLanguage === language.value ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => onLanguageChange(language.value)}
+            className={helpLanguage === language.value ? 'shadow-sm' : 'bg-white'}>
+            
               {language.label}
             </Button>
-          ))}
+          )}
         </div>
 
-        {helpLanguage === 'en' ? (
-          <>
+        {helpLanguage === 'en' ?
+        <>
             <section className="space-y-2">
               <h3 className="text-lg font-semibold text-slate-900">Driver Portal</h3>
               <p className="text-sm leading-6 text-slate-700">
@@ -117,9 +117,9 @@ export default function DriverGuidanceTabs({ helpLanguage, onLanguageChange }) {
                 </li>
               </ul>
             </section>
-          </>
-        ) : (
-          <>
+          </> :
+
+        <>
             <section className="space-y-2">
               <h3 className="text-lg font-semibold text-slate-900">Portal do Motorista</h3>
               <p className="text-sm leading-6 text-slate-700">
@@ -205,8 +205,8 @@ export default function DriverGuidanceTabs({ helpLanguage, onLanguageChange }) {
               </ul>
             </section>
           </>
-        )}
+        }
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 }
