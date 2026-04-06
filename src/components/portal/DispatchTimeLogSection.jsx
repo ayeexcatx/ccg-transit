@@ -18,8 +18,8 @@ export default function DispatchTimeLogSection({
   onChangeDraft,
   onCopyToAll,
   onSaveAll,
-  isEditingTimeLogs,
-  onEditTimeLogs,
+  editingTimeLogTrucks,
+  onEditTruckTimeLog,
   hasUnsavedChanges,
   isSavingAll,
   entriesToSave,
@@ -34,6 +34,9 @@ export default function DispatchTimeLogSection({
         ? assignedTrucks
         : []);
   const canShowTimeLog = editableTrucks.length > 0 && dispatchStatus !== 'Cancelled' && (isOwner ? showOwnerAssignmentsAndTimeLogs : true);
+  const hasSavedEntry = (truck) => timeEntries.some((entry) => entry.dispatch_id === dispatch.id && entry.truck_number === truck);
+  const isTruckEditing = (truck) => !hasSavedEntry(truck) || Boolean(editingTimeLogTrucks?.[truck]);
+  const hasEditableRows = editableTrucks.some((truck) => isTruckEditing(truck));
 
   return (
     <>
@@ -65,13 +68,13 @@ export default function DispatchTimeLogSection({
                 onChangeDraft={onChangeDraft}
                 onCopyToAll={onCopyToAll}
                 isFirstRow={truck === editableTrucks[0]}
-                isEditing={isEditingTimeLogs}
-                showActor={!isEditingTimeLogs}
-                onEdit={onEditTimeLogs}
+                isEditing={isTruckEditing(truck)}
+                showActor={!isTruckEditing(truck)}
+                onEdit={() => onEditTruckTimeLog(truck)}
               />
             ))}
           </div>
-          {isEditingTimeLogs && (
+          {hasEditableRows && (
             <div className="mt-3 border-t border-slate-200/80 pt-3">
               <Button
                 type="button"

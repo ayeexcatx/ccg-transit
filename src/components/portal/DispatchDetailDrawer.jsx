@@ -305,7 +305,8 @@ export default function DispatchDetailDrawer({
   const { currentAppIdentity } = useAuth();
   const [draftTimeEntries, setDraftTimeEntries] = useState({});
   const [isSavingAll, setIsSavingAll] = useState(false);
-  const [isEditingTimeLogs, setIsEditingTimeLogs] = useState(true);
+  const [editingTimeLogTrucks, setEditingTimeLogTrucks] = useState({});
+  const [optimisticTimeEntries, setOptimisticTimeEntries] = useState([]);
   const drawerScrollRef = React.useRef(null);
   const timeLogSectionRef = React.useRef(null);
   const [isEditingTrucks, setIsEditingTrucks] = useState(false);
@@ -320,7 +321,8 @@ export default function DispatchDetailDrawer({
 
   useEffect(() => {
     setDraftTimeEntries({});
-    setIsEditingTimeLogs(true);
+    setEditingTimeLogTrucks({});
+    setOptimisticTimeEntries([]);
   }, [dispatch?.id]);
 
   useEffect(() => {
@@ -581,6 +583,26 @@ export default function DispatchDetailDrawer({
     }
   };
 
+  const effectiveTimeEntries = useMemo(() => {
+    if (!optimisticTimeEntries.length) return timeEntries;
+
+    const keyFor = (entry) => `${entry.dispatch_id}::${entry.truck_number}`;
+    const optimisticByKey = optimisticTimeEntries.reduce((map, entry) => {
+      if (!entry?.dispatch_id || !entry?.truck_number) return map;
+      map[keyFor(entry)] = entry;
+      return map;
+    }, {});
+
+    const merged = timeEntries.map((entry) => optimisticByKey[keyFor(entry)] || entry);
+    const existingKeys = new Set(merged.map(keyFor));
+    optimisticTimeEntries.forEach((entry) => {
+      const key = keyFor(entry);
+      if (!existingKeys.has(key)) merged.push(entry);
+    });
+
+    return merged;
+  }, [timeEntries, optimisticTimeEntries]);
+
   if (!dispatch) return null;
 
   const activeDriverDispatches = driverAssignments.filter((entry) => entry?.active_flag !== false);
@@ -706,7 +728,7 @@ export default function DispatchDetailDrawer({
 
   const entriesToSave = editableTimeLogTrucks.
   map((truck) => {
-    const existing = timeEntries.find((te) => te.dispatch_id === dispatch.id && te.truck_number === truck);
+    const existing = effectiveTimeEntries.find((te) => te.dispatch_id === dispatch.id && te.truck_number === truck);
     const start = draftTimeEntries[truck]?.start ?? existing?.start_time ?? '';
     const end = draftTimeEntries[truck]?.end ?? existing?.end_time ?? '';
     if (!start && !end) return null;
@@ -717,7 +739,7 @@ export default function DispatchDetailDrawer({
   const hasUnsavedChanges = editableTimeLogTrucks.some((truck) => {
     const draft = draftTimeEntries[truck];
     if (!draft) return false;
-    const existing = timeEntries.find((te) => te.dispatch_id === dispatch.id && te.truck_number === truck);
+    const existing = effectiveTimeEntries.find((te) => te.dispatch_id === dispatch.id && te.truck_number === truck);
     const currentStart = existing?.start_time ?? '';
     const currentEnd = existing?.end_time ?? '';
     const nextStart = draft.start ?? currentStart;
@@ -731,9 +753,28 @@ export default function DispatchDetailDrawer({
     const previousScrollTop = drawerScrollRef.current?.scrollTop;
 
     try {
-      await onTimeEntry(dispatch, entriesToSave);
+      const savedEntries = await onTimeEntry(dispatch, entriesToSave);
+      if (Array.isArray(savedEntries) && savedEntries.length > 0) {
+        setOptimisticTimeEntries((prev) => {
+          const keyFor = (entry) => `${entry.dispatch_id}::${entry.truck_number}`;
+          const merged = [...prev];
+          savedEntries.forEach((entry) => {
+            const key = keyFor(entry);
+            const index = merged.findIndex((candidate) => keyFor(candidate) === key);
+            if (index >= 0) merged[index] = entry;
+            else merged.push(entry);
+          });
+          return merged;
+        });
+      }
       setDraftTimeEntries({});
-      setIsEditingTimeLogs(false);
+      setEditingTimeLogTrucks((prev) => {
+        const next = { ...prev };
+        entriesToSave.forEach(({ truck }) => {
+          delete next[truck];
+        });
+        return next;
+      });
       requestAnimationFrame(() => {
         if (typeof previousScrollTop === 'number' && drawerScrollRef.current) {
           drawerScrollRef.current.scrollTop = previousScrollTop;
@@ -1069,13 +1110,13 @@ export default function DispatchDetailDrawer({
                     editableTrucks={editableTimeLogTrucks}
                     timeLogSectionRef={timeLogSectionRef}
                     draftTimeEntries={draftTimeEntries}
-                    timeEntries={timeEntries}
+                    timeEntries={effectiveTimeEntries}
                     dispatch={dispatch}
                     onChangeDraft={handleChangeDraft}
                     onCopyToAll={handleCopyToAll}
                     onSaveAll={handleSaveAll}
-                    isEditingTimeLogs={isEditingTimeLogs}
-                    onEditTimeLogs={() => setIsEditingTimeLogs(true)}
+                    editingTimeLogTrucks={editingTimeLogTrucks}
+                    onEditTruckTimeLog={(truck) => setEditingTimeLogTrucks((prev) => ({ ...prev, [truck]: true }))}
                     hasUnsavedChanges={hasUnsavedChanges}
                     isSavingAll={isSavingAll}
                     entriesToSave={entriesToSave}
