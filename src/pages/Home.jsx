@@ -58,6 +58,24 @@ const getNotificationActivityTimestampMs = (notification) =>
   parseTimestampMs(notification?.created_date) ||
   parseTimestampMs(notification?.created_at);
 
+const getDriverSeenActivityTimestamp = (notification) =>
+  notification?.seen_at ||
+  notification?.action_timestamp ||
+  notification?.event_timestamp ||
+  notification?.canonical_event_timestamp ||
+  notification?.created_date ||
+  notification?.created_at ||
+  null;
+
+const getDriverSeenActivityTimestampMs = (notification) =>
+  parseTimestampMs(notification?.seen_at) ||
+  parseTimestampMs(notification?.action_timestamp) ||
+  parseTimestampMs(notification?.event_timestamp) ||
+  parseTimestampMs(notification?.canonical_event_timestamp) ||
+  parseTimestampMs(notification?.created_date) ||
+  parseTimestampMs(notification?.created_at) ||
+  0;
+
 const statusColors = {
   Scheduled: 'bg-blue-50 text-blue-700 border-blue-200',
   Dispatch: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -455,26 +473,37 @@ export default function Home() {
         }));
     });
 
-    const driverSeenActivity = notifications
-      .filter((notification) => notification?.notification_category === 'driver_dispatch_seen')
-      .map((notification) => ({
-        id: `driver-seen:${notification.id}`,
-        source: 'driver_dispatch_seen',
-        title: notification?.title || 'Driver dispatch seen',
-        details: notification?.message || '',
-        activity_timestamp:
-          notification?.seen_at ||
-          notification?.action_timestamp ||
-          notification?.event_timestamp ||
-          notification?.canonical_event_timestamp ||
-          notification?.created_date ||
-          null,
-        activity_timestamp_ms:
-          parseTimestampMs(notification?.seen_at) ||
-          parseTimestampMs(notification?.action_timestamp) ||
-          parseTimestampMs(notification?.event_timestamp) ||
-          getNotificationActivityTimestampMs(notification),
-      }));
+    const driverSeenActivity = Object.values(
+      notifications
+        .filter((notification) => notification?.notification_category === 'driver_dispatch_seen')
+        .reduce((acc, notification) => {
+          const activityTimestamp = getDriverSeenActivityTimestamp(notification);
+          const activityTimestampMs = getDriverSeenActivityTimestampMs(notification);
+          const dedupeKey = [
+            notification?.notification_category,
+            notification?.related_dispatch_id,
+            notification?.notification_type,
+            notification?.title,
+            notification?.message,
+          ]
+            .map((part) => String(part || '').trim())
+            .join(':');
+
+          const current = acc[dedupeKey];
+          if (!current || activityTimestampMs > current.activity_timestamp_ms) {
+            acc[dedupeKey] = {
+              id: `driver-seen:${notification.id}`,
+              source: 'driver_dispatch_seen',
+              title: notification?.title || 'Driver dispatch seen',
+              details: notification?.message || '',
+              activity_timestamp: activityTimestamp,
+              activity_timestamp_ms: activityTimestampMs,
+            };
+          }
+
+          return acc;
+        }, {})
+    );
 
     return [...groupedConfirmations, ...ownerDispatchActivity, ...driverSeenActivity]
       .filter((item) => item.activity_timestamp_ms > 0)
