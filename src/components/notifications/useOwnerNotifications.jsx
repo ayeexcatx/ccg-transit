@@ -26,6 +26,32 @@ function getDriverNotificationSeenKind(notification, dispatch = null) {
   return 'assigned';
 }
 
+function parseTimestampMs(value) {
+  if (!value) return 0;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getCanonicalNotificationTimestamp(notification) {
+  const timestampCandidates = [
+    notification?.event_timestamp,
+    notification?.action_timestamp,
+    notification?.seen_at,
+    notification?.confirmed_at,
+    notification?.updated_date,
+    notification?.created_date,
+    notification?.created_at,
+  ];
+
+  const canonicalTimestamp = timestampCandidates.find((candidate) => parseTimestampMs(candidate) > 0) || null;
+  const canonicalTimestampMs = parseTimestampMs(canonicalTimestamp);
+
+  return {
+    canonicalTimestamp,
+    canonicalTimestampMs,
+  };
+}
+
 export function useOwnerNotifications(session) {
   const { currentAppIdentity } = useAuth();
   const queryClient = useQueryClient();
@@ -120,22 +146,32 @@ export function useOwnerNotifications(session) {
       visibleDispatchIds: validDispatchIds,
       driverDispatchIds,
     }))
-    .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
+    .map((notification) => {
+      const { canonicalTimestamp, canonicalTimestampMs } = getCanonicalNotificationTimestamp(notification);
+      return {
+        ...notification,
+        canonical_event_timestamp: canonicalTimestamp,
+        canonical_event_timestamp_ms: canonicalTimestampMs,
+      };
+    })
+    .sort((a, b) => b.canonical_event_timestamp_ms - a.canonical_event_timestamp_ms);
 
   const ownerScopeTrucks = Array.isArray(ownerCompany?.trucks) ? ownerCompany.trucks : [];
 
-  const notificationsWithStatus = notifications.map((notification) => ({
-    ...notification,
-    effectiveReadFlag: getNotificationEffectiveReadFlag({
-      session,
-      notification,
-      dispatch: notification.related_dispatch_id
-        ? dispatchById.get(normalizeVisibilityId(notification.related_dispatch_id)) || null
-        : null,
-      confirmations,
-      ownerAllowedTrucks: ownerScopeTrucks,
-    }),
-  }));
+  const notificationsWithStatus = notifications
+    .map((notification) => ({
+      ...notification,
+      effectiveReadFlag: getNotificationEffectiveReadFlag({
+        session,
+        notification,
+        dispatch: notification.related_dispatch_id
+          ? dispatchById.get(normalizeVisibilityId(notification.related_dispatch_id)) || null
+          : null,
+        confirmations,
+        ownerAllowedTrucks: ownerScopeTrucks,
+      }),
+    }))
+    .sort((a, b) => b.canonical_event_timestamp_ms - a.canonical_event_timestamp_ms);
 
   const unreadCount = notificationsWithStatus.filter((notification) => !notification.effectiveReadFlag).length;
 
