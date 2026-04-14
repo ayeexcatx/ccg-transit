@@ -52,7 +52,7 @@ export default function NotificationBellItem({
             />
           </div>
           <p className="mt-2 text-xs text-slate-400">
-            {formatNotificationTime(notification.created_date)}
+            {formatNotificationTime(notification.canonical_event_timestamp || notification.created_date)}
           </p>
         </div>
       </div>
