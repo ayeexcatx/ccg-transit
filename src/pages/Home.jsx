@@ -43,6 +43,19 @@ import {
 
 const dateOnly = (v) => (typeof v === 'string' ? v.slice(0, 10) : v);
 const normalizeId = (value) => normalizeVisibilityId(value);
+const parseTimestampMs = (value) => {
+  if (!value) return 0;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+const getNotificationActivityTimestampMs = (notification) =>
+  parseTimestampMs(notification?.canonical_event_timestamp) ||
+  parseTimestampMs(notification?.event_timestamp) ||
+  parseTimestampMs(notification?.action_timestamp) ||
+  parseTimestampMs(notification?.seen_at) ||
+  parseTimestampMs(notification?.confirmed_at) ||
+  parseTimestampMs(notification?.created_date) ||
+  parseTimestampMs(notification?.created_at);
 
 const statusColors = {
   Scheduled: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -256,7 +269,7 @@ export default function Home() {
     const unresolved = notifications
       .filter((notification) => isAvailabilityRequestNotification(notification))
       .filter((notification) => isAvailabilityRequestUnresolved(notification, latestAvailabilityUpdateMs))
-      .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
+      .sort((a, b) => getNotificationActivityTimestampMs(b) - getNotificationActivityTimestampMs(a));
 
     return {
       latestUnresolvedAvailabilityRequest: unresolved[0] || null,
@@ -387,7 +400,8 @@ export default function Home() {
       .map((notification) => ({
         notification,
         dispatch: notification.related_dispatch_id ? dispatchMap[normalizeId(notification.related_dispatch_id)] : null,
-      }));
+      }))
+      .sort((a, b) => getNotificationActivityTimestampMs(b.notification) - getNotificationActivityTimestampMs(a.notification));
   }, [notifications, filteredDispatches, session?.code_type, confirmations, ownerScopeTrucks]);
   const actionItems = actionItemsSource.slice(0, 8);
   const actionNeededCount = actionItemsSource.length;
