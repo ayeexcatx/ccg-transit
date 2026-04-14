@@ -49,6 +49,7 @@ const parseTimestampMs = (value) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 const getNotificationActivityTimestampMs = (notification) =>
+  Number(notification?.canonical_event_timestamp_ms || 0) ||
   parseTimestampMs(notification?.canonical_event_timestamp) ||
   parseTimestampMs(notification?.event_timestamp) ||
   parseTimestampMs(notification?.action_timestamp) ||
@@ -95,6 +96,15 @@ const formatDispatchTime = (startTime) => {
   let hour12 = hour24 % 12;
   if (hour12 === 0) hour12 = 12;
   return `${hour12}:${minute} ${period}`;
+};
+
+const formatActivityTimestampLabel = (timestamp) => {
+  if (!timestamp) return '—';
+  try {
+    return format(new Date(timestamp), 'MMM d, yyyy h:mm a');
+  } catch {
+    return '—';
+  }
 };
 
 const getEasternHour = () => {
@@ -406,6 +416,78 @@ export default function Home() {
   const actionItems = actionItemsSource.slice(0, 8);
   const actionNeededCount = actionItemsSource.length;
 
+  const recentCompanyActivity = useMemo(() => {
+    if (!isOwner) return [];
+
+    const groupedConfirmations = Object.values((confirmations || []).reduce((acc, confirmation) => {
+      const dispatchId = normalizeId(confirmation?.dispatch_id);
+      if (!dispatchId) return acc;
+      const dispatch = filteredDispatches.find((row) => normalizeId(row.id) === dispatchId);
+      if (!dispatch) return acc;
+
+      const key = `${dispatchId}:${String(confirmation?.confirmation_type || '').trim() || 'unknown'}`;
+      const confirmationTimestamp = parseTimestampMs(confirmation?.confirmed_at);
+      const current = acc[key];
+      if (!current || confirmationTimestamp > current.activity_timestamp_ms) {
+        acc[key] = {
+          id: `confirmation:${key}`,
+          source: 'confirmation',
+          title: `${dispatch.company_name || activeCompanyName || 'Company'} confirmation recorded`,
+          details: `${confirmation?.confirmation_type || 'Confirmation'} • Truck ${confirmation?.truck_number || '—'}`,
+          activity_timestamp: confirmation?.confirmed_at || null,
+          activity_timestamp_ms: confirmationTimestamp,
+        };
+      }
+      return acc;
+    }, {}));
+
+    const ownerDispatchActivity = filteredDispatches.flatMap((dispatch) => {
+      const dispatchLog = Array.isArray(dispatch?.admin_activity_log) ? dispatch.admin_activity_log : [];
+      return dispatchLog
+        .filter((entry) => entry && typeof entry === 'object')
+        .map((entry, index) => ({
+          id: `dispatch-log:${dispatch.id}:${entry.id || index}`,
+          source: 'dispatch_activity_log',
+          title: `${dispatch.company_name || activeCompanyName || 'Company'} dispatch activity`,
+          details: entry?.message || entry?.event || dispatch?.status || 'Dispatch updated',
+          activity_timestamp: entry?.timestamp || null,
+          activity_timestamp_ms: parseTimestampMs(entry?.timestamp),
+        }));
+    });
+
+    const driverSeenActivity = notifications
+      .filter((notification) => notification?.notification_category === 'driver_dispatch_seen')
+      .map((notification) => ({
+        id: `driver-seen:${notification.id}`,
+        source: 'driver_dispatch_seen',
+        title: notification?.title || 'Driver dispatch seen',
+        details: notification?.message || '',
+        activity_timestamp:
+          notification?.seen_at ||
+          notification?.action_timestamp ||
+          notification?.event_timestamp ||
+          notification?.canonical_event_timestamp ||
+          notification?.created_date ||
+          null,
+        activity_timestamp_ms:
+          parseTimestampMs(notification?.seen_at) ||
+          parseTimestampMs(notification?.action_timestamp) ||
+          parseTimestampMs(notification?.event_timestamp) ||
+          getNotificationActivityTimestampMs(notification),
+      }));
+
+    return [...groupedConfirmations, ...ownerDispatchActivity, ...driverSeenActivity]
+      .filter((item) => item.activity_timestamp_ms > 0)
+      .sort((a, b) => b.activity_timestamp_ms - a.activity_timestamp_ms)
+      .slice(0, 8);
+  }, [
+    isOwner,
+    confirmations,
+    filteredDispatches,
+    notifications,
+    activeCompanyName,
+  ]);
+
   const handleNotificationClick = async (n) => {
     if (!session) return;
 
@@ -493,6 +575,32 @@ export default function Home() {
           getVisibleTrucksForNotification={getVisibleTrucksForNotification}
           onNotificationClick={handleNotificationClick}
         />
+      )}
+
+      {isOwner && (
+        <section>
+          <Card className={homeSectionCardClass}>
+            <div className={`${homeSectionHeaderClass} bg-slate-800`}>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-white" />
+                <h3 className="text-sm font-semibold text-white">Recent Company Activity</h3>
+              </div>
+            </div>
+            <CardContent className="p-0 divide-y divide-slate-100">
+              {recentCompanyActivity.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">No recent company activity</p>
+              ) : (
+                recentCompanyActivity.map((activity) => (
+                  <div key={activity.id} className="px-4 py-3">
+                    <p className="text-sm font-medium text-slate-800">{activity.title}</p>
+                    {activity.details ? <p className="text-xs text-slate-600 mt-1">{activity.details}</p> : null}
+                    <p className="text-xs text-slate-500 mt-1">{formatActivityTimestampLabel(activity.activity_timestamp)}</p>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </section>
       )}
 
       {/* Today's Dispatches */}
