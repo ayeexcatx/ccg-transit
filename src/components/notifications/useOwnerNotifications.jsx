@@ -38,9 +38,9 @@ function getCanonicalNotificationTimestamp(notification) {
     notification?.action_timestamp,
     notification?.seen_at,
     notification?.confirmed_at,
+    notification?.updated_date,
     notification?.created_date,
     notification?.created_at,
-    notification?.updated_date,
   ];
 
   const canonicalTimestamp = timestampCandidates.find((candidate) => parseTimestampMs(candidate) > 0) || null;
